@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.bcommerce.mapper.TradeOrderMapper">
+
+    <insert id="insert">
+        INSERT INTO bc_trade_order_${shard}
+        (id, order_no, user_id, order_type, total_cent, status, seckill_activity_id)
+        VALUES
+        (#{row.id}, #{row.orderNo}, #{row.userId}, #{row.orderType}, #{row.totalCent}, #{row.status}, #{row.seckillActivityId})
+    </insert>
+
+    <select id="findByUserAndOrder" resultType="com.bcommerce.model.TradeOrder">
+        SELECT id, order_no AS orderNo, user_id AS userId, order_type AS orderType, total_cent AS totalCent,
+               status, seckill_activity_id AS seckillActivityId, created_at AS createdAt
+        FROM bc_trade_order_${shard}
+        WHERE id = #{orderId} AND user_id = #{userId}
+    </select>
+
+    <select id="listByUser" resultType="com.bcommerce.model.TradeOrder">
+        SELECT id, order_no AS orderNo, user_id AS userId, order_type AS orderType, total_cent AS totalCent,
+               status, seckill_activity_id AS seckillActivityId, created_at AS createdAt
+        FROM bc_trade_order_${shard}
+        WHERE user_id = #{userId}
+        ORDER BY id DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="listByMerchant" resultType="com.bcommerce.model.TradeOrder">
+        SELECT * FROM (
+            SELECT o.id, o.order_no AS orderNo, o.user_id AS userId, o.order_type AS orderType, o.total_cent AS totalCent,
+                   o.status, o.seckill_activity_id AS seckillActivityId, o.created_at AS createdAt
+            FROM bc_trade_order_0 o
+            JOIN bc_trade_order_item_0 i ON i.order_id = o.id AND i.user_id = o.user_id
+            JOIN bc_product_sku k ON k.id = i.sku_id
+            JOIN bc_product_spu p ON p.id = k.spu_id
+            WHERE p.merchant_id = #{merchantId}
+            UNION ALL
+            SELECT o.id, o.order_no AS orderNo, o.user_id AS userId, o.order_type AS orderType, o.total_cent AS totalCent,
+                   o.status, o.seckill_activity_id AS seckillActivityId, o.created_at AS createdAt
+            FROM bc_trade_order_1 o
+            JOIN bc_trade_order_item_1 i ON i.order_id = o.id AND i.user_id = o.user_id
+            JOIN bc_product_sku k ON k.id = i.sku_id
+            JOIN bc_product_spu p ON p.id = k.spu_id
+            WHERE p.merchant_id = #{merchantId}
+        ) t
+        ORDER BY t.id DESC
+        LIMIT #{limit}
+    </select>
+</mapper>

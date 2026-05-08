@@ -1,0 +1,31 @@
+# Images pull via DaoCloud mirror (docker.m.daocloud.io) for regions where Docker Hub is slow or blocked.
+# To use Docker Hub directly again, change image to e.g. mysql:8.0, redis:7-alpine, rabbitmq:3.13-management-alpine.
+services:
+  mysql:
+    image: docker.m.daocloud.io/library/mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: bcommerce
+    # If 3307 is taken, use 3308 on host (update commerce datasource URL to match).
+    ports:
+      - "3308:3306"
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  redis:
+    image: docker.m.daocloud.io/library/redis:7-alpine
+    # Host 6379 is often taken by a local Redis; use 6380 on host -> 6379 in container.
+    ports:
+      - "6380:6379"
+  rabbitmq:
+    image: docker.m.daocloud.io/library/rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  elasticsearch:
+    build:
+      context: ./docker/elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"

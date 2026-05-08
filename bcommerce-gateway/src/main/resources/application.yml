@@ -1,0 +1,61 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: bcommerce-gateway
+  data:
+    redis:
+      host: localhost
+      port: 6380
+  cloud:
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            # Any localhost / 127.0.0.1 dev port (5173, 4173 preview, etc.)
+            allowedOriginPatterns:
+              - "http://localhost:*"
+              - "http://127.0.0.1:*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            allowedHeaders: "*"
+            allowCredentials: true
+      routes:
+        - id: commerce
+          uri: http://127.0.0.1:8081
+          predicates:
+            - Path=/api/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 120
+                redis-rate-limiter.burstCapacity: 240
+                key-resolver: "#{@ipKeyResolver}"
+            - name: CircuitBreaker
+              args:
+                name: commerceCb
+                fallbackUri: forward:/fallback/503
+
+resilience4j:
+  timelimiter:
+    instances:
+      commerceCb:
+        timeout-duration: 8s
+  circuitbreaker:
+    instances:
+      commerceCb:
+        sliding-window-size: 30
+        failure-rate-threshold: 45
+        wait-duration-in-open-state: 10s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
