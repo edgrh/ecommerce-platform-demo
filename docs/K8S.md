@@ -9,6 +9,11 @@
   - **[kind](https://kind.sigs.k8s.io/)**（推荐，跨平台）
   - **Docker Desktop 自带 Kubernetes**（Windows/Mac 开启后，本地 `docker build` 的镜像一般可直接被集群使用，`imagePullPolicy: IfNotPresent`）
 
+### 资源建议（16GB 笔记本）
+
+- 这套清单默认按 **16GB 内存笔记本**做了保守配置：`gateway/commerce` 各 3 副本、Elasticsearch 堆内存 256m。
+- 如果机器内存更大、想提吞吐，可以再提高副本数与资源上限；如果仍遇到 ES OOM，优先继续下调 `k8s/05-elasticsearch.yaml` 的 `ES_JAVA_OPTS` 和 `limits.memory`，或在演示时暂时关闭 ES（搜索将回退到 MySQL `LIKE`）。
+
 ## 1. 构建业务 JAR
 
 在**仓库根目录**执行（路径按你的克隆位置替换）：
@@ -55,6 +60,8 @@ Docker Desktop K8s 通常**不需要** `kind load`，保证镜像已 `docker bui
 kubectl apply -f k8s/
 ```
 
+说明：`k8s/` 目录只包含业务运行所需资源（MySQL/Redis/RabbitMQ/ES/commerce/gateway），不再默认创建压测 Job。
+
 等待就绪：
 
 ```powershell
@@ -79,13 +86,61 @@ kubectl -n bcommerce rollout status deployment/bcommerce-gateway --timeout=300s
 
 前端 `vite` 代理可把 `target` 设为 `http://127.0.0.1:8080`（与网关 CORS `application-k8s` 中 `localhost` 一致）。
 
-## 6. 一键脚本（kind）
+## 6. 一键脚本
+
+**方式 A：已安装 [kind](https://kind.sigs.k8s.io/)（且在 PATH 中）**
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\k8s-kind-up.ps1
 ```
 
-脚本会：`mvn package`、构建镜像、创建 kind 集群（若不存在）、`kind load`、`kubectl apply`。
+脚本会：`mvn package`、构建镜像、创建 kind 集群 `bcommerce`（若不存在）、`kind load`、`kubectl apply`。
+
+**方式 B：只用 Docker Desktop 自带 Kubernetes（无需安装 kind）**
+
+先在 Docker Desktop → **Settings → Kubernetes** 勾选 **Enable Kubernetes** 并等待就绪，然后：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\k8s-kind-up.ps1 -DockerDesktop
+```
+
+本地 `docker build` 的镜像可被该集群直接使用，**不需要** `kind load`。
+
+若提示找不到 `docker-desktop` 上下文，执行 `kubectl config get-contexts`，再用 `kubectl config use-context <名称>` 切到你的集群后，可手动从「步骤 2」构建镜像开始执行 `kubectl apply -f k8s/`。
+
+**方式 C：日常只改 Java / 种子数据——重建镜像并滚动重启（不必再手抄一长串命令）**
+
+集群和 `k8s/` 已部署过一次后，在仓库根目录执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\k8s-redeploy.ps1
+```
+
+脚本会**自动判断**：若存在 kind 集群 `bcommerce` 则 `kind load`；否则若 kubectl 有 `docker-desktop` 上下文则直接用 Docker Desktop 内置 K8s（**不必安装 kind，也不必写 `-DockerDesktop`**）。仅当你想**强制**切到 `docker-desktop` 时再传 `-DockerDesktop`。
+
+若使用纯 kind、且本机没有启用 Docker Desktop K8s，保持上述一条命令即可（会先走 kind 分支）。
+
+脚本会：`mvn package` → 构建 `bcommerce/commerce:local` 与 `bcommerce/gateway:local` →（仅 kind 时 `kind load`）→ `kubectl rollout restart` 两个 Deployment 并等待就绪。若改了 ES/IK Dockerfile，可加 `-Elasticsearch` 一并重建 `elasticsearch` 镜像并重启对应 Deployment。
+
+**是否需要重启？** 改代码或资源文件后，运行中的 Pod / 本机 `java -jar` **必须**用新构建替换才会生效；本脚本把这件事收敛成一条命令。**仅改前端**时一般只需刷新或重启 `npm run dev`，不必动 K8s。
+
+**演示种子（DemoSeedRunner）**：只在**空库**（无用户）时插入数据；K8s 里 MySQL 若有 PVC，反复重启 commerce **不会**自动清空重灌。要重新跑种子需删库/删 PVC 或 `kubectl delete pvc ...` 后让 MySQL 重新初始化（生产勿用）。
+
+## 7. 集群内 k6 压测（可选）
+
+默认部署不会自动创建压测任务。需要压测时手动执行：
+
+```powershell
+kubectl -n bcommerce apply -f perf/k6-job.yaml
+kubectl -n bcommerce wait --for=condition=complete job/k6-activities --timeout=240s
+kubectl -n bcommerce logs job/k6-activities
+```
+
+如需重复压测，先删除旧 Job：
+
+```powershell
+kubectl -n bcommerce delete job k6-activities --ignore-not-found=true
+```
 
 ## 常见问题
 

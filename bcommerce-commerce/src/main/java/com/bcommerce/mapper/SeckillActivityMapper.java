@@ -29,6 +29,6 @@ public interface SeckillActivityMapper {
     List<SeckillActivity> listOnline();
 
     @Update(
-            "UPDATE bc_seckill_activity SET sold_stock = sold_stock + #{qty} WHERE id = #{id} AND sold_stock + #{qty} &lt;= total_stock AND status = 'ONLINE'")
+            "UPDATE bc_seckill_activity SET sold_stock = sold_stock + #{qty} WHERE id = #{id} AND sold_stock + #{qty} <= total_stock AND status = 'ONLINE'")
     int tryIncreaseSold(@Param("id") Long id, @Param("qty") int qty);
 }

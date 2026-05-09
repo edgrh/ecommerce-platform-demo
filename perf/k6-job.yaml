@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: k6-scripts
+  namespace: bcommerce
+data:
+  k6-activities.js: |
+    import http from 'k6/http';
+    import { check } from 'k6';
+    import { Counter } from 'k6/metrics';
+
+    // In-cluster pressure test script.
+    // Target: gateway service DNS in Kubernetes.
+    const BASE_URL = __ENV.BASE_URL || 'http://bcommerce-gateway:8080';
+    const RATE = Number(__ENV.RATE || 2000); // requests per second
+    const DURATION = __ENV.DURATION || '30s';
+
+    const ok200 = new Counter('resp_200');
+    const rl429 = new Counter('resp_429');
+    const err5xx = new Counter('resp_5xx');
+    const other = new Counter('resp_other');
+
+    export const options = {
+      scenarios: {
+        activities: {
+          executor: 'constant-arrival-rate',
+          rate: RATE,
+          timeUnit: '1s',
+          duration: DURATION,
+          preAllocatedVUs: 500,
+          maxVUs: 10000,
+        },
+      },
+      thresholds: {
+        http_req_duration: ['p(95)<1000'],
+      },
+      summaryTrendStats: ['avg', 'min', 'med', 'p(90)', 'p(95)', 'p(99)', 'max'],
+    };
+
+    export default function () {
+      const res = http.get(`${BASE_URL}/api/c/seckill/activities`, {
+        tags: { name: 'GET /api/c/seckill/activities' },
+        timeout: '10s',
+      });
+      if (res.status === 200) ok200.add(1);
+      else if (res.status === 429) rl429.add(1);
+      else if (res.status >= 500) err5xx.add(1);
+      else other.add(1);
+
+      check(res, { 'status is 200': (r) => r.status === 200 });
+    }
+
+    export function handleSummary(data) {
+      const m = data.metrics || {};
+      const countOf = (name) => (m[name] && m[name].values && typeof m[name].values.count === 'number') ? m[name].values.count : 0;
+      const valOf = (name, key) => (m[name] && m[name].values && m[name].values[key] != null) ? m[name].values[key] : null;
+      const summary = {
+        base_url: BASE_URL,
+        rate: RATE,
+        duration: DURATION,
+        http_reqs: valOf('http_reqs', 'count'),
+        dropped_iterations: valOf('dropped_iterations', 'count'),
+        resp: {
+          '200': countOf('resp_200'),
+          '429': countOf('resp_429'),
+          '5xx': countOf('resp_5xx'),
+          other: countOf('resp_other'),
+        },
+        http_req_failed_rate: valOf('http_req_failed', 'rate'),
+        http_req_duration_p95_ms: valOf('http_req_duration', 'p(95)'),
+        http_req_duration_p99_ms: valOf('http_req_duration', 'p(99)'),
+      };
+      return { stdout: JSON.stringify(summary, null, 2) + '\n' };
+    }
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: k6-activities
+  namespace: bcommerce
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: k6
+          image: grafana/k6:0.51.0
+          args:
+            - run
+            - /scripts/k6-activities.js
+          env:
+            - name: BASE_URL
+              value: "http://bcommerce-gateway:8080"
+            - name: RATE
+              value: "2000"
+            - name: DURATION
+              value: "30s"
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+      volumes:
+        - name: scripts
+          configMap:
+            name: k6-scripts

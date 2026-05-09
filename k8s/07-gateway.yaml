@@ -4,7 +4,7 @@ metadata:
   name: bcommerce-gateway
   namespace: bcommerce
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: bcommerce-gateway
@@ -13,21 +13,9 @@ spec:
       labels:
         app: bcommerce-gateway
     spec:
-      initContainers:
-        - name: wait-commerce
-          image: busybox:1.36
-          command:
-            - sh
-            - -c
-            - |
-              for i in $(seq 1 90); do
-                nc -z bcommerce-commerce 8081 && exit 0
-                sleep 2
-              done
-              exit 1
       containers:
         - name: gateway
-          image: bcommerce/gateway:local
+          image: bcommerce/gateway:perf
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
@@ -50,9 +38,10 @@ spec:
           resources:
             requests:
               memory: "256Mi"
-              cpu: "100m"
+              cpu: "150m"
             limits:
-              memory: "512Mi"
+              memory: "768Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service

@@ -5,6 +5,7 @@ const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: () => import('../views/HomeView.vue') },
+    { path: '/products/:id', component: () => import('../views/ProductDetailView.vue') },
     { path: '/seckill', component: () => import('../views/SeckillView.vue') },
     { path: '/orders', component: () => import('../views/OrdersView.vue'), meta: { auth: true } },
     { path: '/login', component: () => import('../views/LoginView.vue') },

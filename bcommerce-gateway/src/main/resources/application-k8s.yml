@@ -29,8 +29,8 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 120
-                redis-rate-limiter.burstCapacity: 240
+                redis-rate-limiter.replenishRate: 20000
+                redis-rate-limiter.burstCapacity: 40000
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:

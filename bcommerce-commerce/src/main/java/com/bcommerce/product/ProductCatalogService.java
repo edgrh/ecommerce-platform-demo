@@ -2,12 +2,16 @@ package com.bcommerce.product;
 
 import com.bcommerce.mapper.ProductSpuMapper;
 import com.bcommerce.product.es.ProductSpuEsService;
+import com.bcommerce.web.dto.ProductSpuDetailResponse;
 import com.bcommerce.web.dto.ProductSpuResponse;
+import com.bcommerce.model.ProductSpu;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
@@ -46,5 +50,13 @@ public class ProductCatalogService {
             log.warn("elasticsearch search failed, fallback to mysql like: {}", e.toString());
             return spuMapper.searchByKeyword(term, cap).stream().map(ProductSpuResponse::from).toList();
         }
+    }
+
+    public ProductSpuDetailResponse getShelfDetail(long id) {
+        ProductSpu p = spuMapper.findById(id);
+        if (p == null || !"ON_SHELF".equals(p.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "商品不存在或已下架");
+        }
+        return ProductSpuDetailResponse.from(p);
     }
 }

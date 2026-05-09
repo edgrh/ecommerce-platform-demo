@@ -51,7 +51,7 @@
 ## 5. Maven 与 Docker 镜像
 
 - 若公司内网**无法访问 Maven Central**，需配置私服或 `settings.xml` 镜像（与任何 Spring Boot 项目相同）。
-- `docker-compose.yml` 默认使用 **DaoCloud 镜像前缀**；若你方环境只能走 Docker Hub，把 `image:` 改回官方名即可（compose 文件内已有注释说明）。
+- `docker-compose.yml` 与 `k8s/` 使用 **Docker Hub 官方镜像名**；国内可在 Docker Desktop 配置 `registry-mirrors` 加速。若配置的镜像返回 **401**，请更换或删除该 mirror。
 
 ## 6. 从局域网其他设备访问开发机
 

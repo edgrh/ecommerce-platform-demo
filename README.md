@@ -1,6 +1,6 @@
-# 垂直电商中台演示（网关 + 高并发设计说明）
+# 电商秒杀演示项目（16GB 友好）
 
-**换机 / 新环境**：请先阅读 [`docs/SETUP-OTHER-MACHINE.md`](docs/SETUP-OTHER-MACHINE.md)（版本、端口、顺序、常见问题）。
+**换机 / 新环境**：先看 [`docs/SETUP-OTHER-MACHINE.md`](docs/SETUP-OTHER-MACHINE.md)。
 
 **环境版本**：JDK **17**、Maven **≥ 3.6.3**、Docker（Compose v2）、前端 **Node ≥ 18**。构建时 Enforcer 会校验 JDK/Maven。
 
@@ -9,9 +9,30 @@ Maven 多模块：
 - **`bcommerce-gateway`**：Spring Cloud Gateway（:8080），Redis 限流 + 熔断回退。
 - **`bcommerce-commerce`**：业务服务（:8081），MyBatis + MySQL + Redis + RabbitMQ。
 
-业务域：**商品 / 交易 / 营销(秒杀) / 履约 / 结算 / 风控(异步)**（6 个模块，满足不少于 5 个的要求）。
+业务域按职责拆分为：**商品、交易、营销（秒杀）、履约、结算、风控（异步）**。  
+主交易链路（登录 -> 浏览商品 -> 秒杀下单 -> 订单查询）在本仓库可直接跑通，异步链路用于履约与风控任务落库，便于演示同步/异步边界。
 
 表结构：**12 张物理表**（订单与明细按 `user_id%2` 分表，见 `docs/ARCHITECTURE.md`）。
+
+## 一键启动（推荐）
+
+在仓库根目录执行：
+
+```powershell
+powershell -ExecutionPolicy Bypass -NoProfile -File .\scripts\one-click.ps1
+```
+
+脚本会自动完成：
+
+1. K8s 部署/更新（Docker Desktop Kubernetes）
+2. 后台启动网关 `port-forward`（`localhost:8080`）
+3. 前台启动前端 `npm run dev`（`http://localhost:5173`）
+
+仅启动后端（不启动前端）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -NoProfile -File .\scripts\one-click.ps1 -SkipFrontend
+```
 
 ## 启动
 
@@ -26,9 +47,13 @@ Windows PowerShell 同样适用；若 `docker` / `mvn` 不在 PATH，请先安�
 
 Compose 包含 **MySQL、Redis、RabbitMQ、Elasticsearch（9200）**。ES 镜像内置 **IK 中文分词**（见 `docker/elasticsearch/Dockerfile`）；**首次或改 Dockerfile 后**需执行 `docker compose build elasticsearch` 再 `up`。商品 **关键词检索** 走 ES；未启动 ES 时会回退 MySQL `LIKE`（见日志告警）。
 
+**Kubernetes**：首次部署用 `scripts\k8s-kind-up.ps1`（详见 [`docs/K8S.md`](docs/K8S.md)）。后续改 Java/配置用 `scripts\k8s-redeploy.ps1` 做滚动更新。
+
 不要在同一轮命令里紧跟 `docker compose down`，否则会立刻删掉刚启动的容器。需要停服务时再执行 `docker compose down`。
 
-若拉镜像报错（连不上 `registry-1.docker.io`）：`docker-compose.yml` 已默认走 **DaoCloud 镜像代理**（`docker.m.daocloud.io`）。仍失败时可在 Docker Desktop 配置 **Registry mirrors**（阿里云等），或开全局代理后再 `docker compose pull`。
+若拉镜像慢或失败：`docker-compose.yml` 与 `k8s/` 使用 **Docker Hub** 官方镜像名。可在 Docker Desktop → **Settings → Docker Engine** 配置 `registry-mirrors`（使用你账号下的阿里云等镜像加速）；若某镜像站返回 **401**，请换镜像源或暂时移除该 mirror。
+
+若构建时报 **`auth.docker.io` 连接超时 / `connectex ... failed`**：说明本机到 Docker Hub 认证服务不通（常见于国内网络）。请任选：**全局代理 / VPN**；或在阿里云控制台开通 **容器镜像服务 ACR 的镜像加速器**，把控制台给你的专属 `https://xxxx.mirror.aliyuncs.com` 写入 Docker Engine 的 `registry-mirrors` 后 **Apply & restart**，再执行 `docker build` / `docker compose pull`。
 
 MySQL 在 compose 里映射为 **本机 3308**（若 3307 被占用）。`bcommerce-commerce` 的 `spring.datasource.url` 已对应 `localhost:3308`。
 
@@ -62,7 +87,7 @@ mvn -pl bcommerce-gateway spring-boot:run
 - 商家 `merchant` / `demo123`
 - 买家 `buyer` / `demo123`
 
-## 调试脚本
+## 调试与压测脚本
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\debug-api.ps1
@@ -75,22 +100,29 @@ chmod +x scripts/debug-api.sh
 ./scripts/debug-api.sh http://127.0.0.1:8080
 ```
 
-压测（多账号，经网关）：
+压测（本地脚本）：
 
 ```powershell
 pip install -r scripts\requirements.txt
 python scripts\stress_seckill.py
 ```
 
+压测（K8s 集群内 k6，默认不随部署自动创建）：
+
+```powershell
+kubectl -n bcommerce apply -f perf/k6-job.yaml
+kubectl -n bcommerce wait --for=condition=complete job/k6-activities --timeout=240s
+kubectl -n bcommerce logs job/k6-activities
+```
+
 ## 文档
 
 - **语言约定**：`README.md` 与 `docs/*.md` 为**中文**；前端界面为**中文**；**Java 接口错误信息、SQL 种子文案、压测脚本输出**仍为**英文**。
-- `docs/ARCHITECTURE.md`：架构、10k+ QPS 扩展说明、模块表。
-- `docs/JD-ALIGNMENT.md`：岗位关键词映射。
-- `docs/COURSE-PROJECT-MANUAL.md`：课程大作业说明（背景/功能/技术/流程/截图说明/心得参考/答辩题库）。
+- `docs/ARCHITECTURE.md`：架构、核心链路、模块说明。
 - `docs/PROJECT-FILES.md`：全仓库主要文件与代码用途索引。
-- `docs/K8S.md`：本地 Kubernetes（kind / Docker Desktop）部署步骤；脚本 `scripts/k8s-kind-up.ps1`（Windows）。
+- `docs/K8S.md`：本地 Kubernetes（kind / Docker Desktop）部署步骤；脚本 `scripts/k8s-kind-up.ps1`（`-DockerDesktop` 可走 Docker Desktop 内置 K8s，无需 kind）。
 - `docs/SETUP-OTHER-MACHINE.md`：新电脑运行检查清单与端口说明。
+- `docs/COURSE-PROJECT-MANUAL.md`：答辩可用的报告模板与讲解提纲（可按个人风格改写）。
 
 ## 注意
 

@@ -25,13 +25,13 @@ spec:
             - name: xpack.security.enabled
               value: "false"
             - name: ES_JAVA_OPTS
-              value: "-Xms512m -Xmx512m"
+              value: "-Xms256m -Xmx256m"
           resources:
             requests:
-              memory: "1Gi"
+              memory: "512Mi"
               cpu: "250m"
             limits:
-              memory: "1536Mi"
+              memory: "1Gi"
 ---
 apiVersion: v1
 kind: Service

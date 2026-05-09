@@ -1,6 +1,6 @@
 # 项目文件与代码用途说明
 
-本文档说明 `ecommerce-platform-demo` 仓库中主要目录与文件的用途（**文档与前端界面为中文**；**Java 接口错误信息、SQL 种子文案、压测脚本输出为英文**）。`**/target/`** 为 Maven 编译产物，可删除，不必纳入作业说明。
+本文档说明 `ecommerce-platform-demo` 仓库中主要目录与文件的用途（**文档与前端界面为中文**；**Java 接口错误信息、SQL 种子文案、压测脚本输出为英文**）。`**/target/`** 为 Maven 编译产物，可按需清理，不建议提交到仓库。
 
 ---
 
@@ -21,8 +21,7 @@
 | 文件 | 用途 |
 |------|------|
 | `ARCHITECTURE.md` | 系统架构、模块划分、分表与高并发设计要点。 |
-| `JD-ALIGNMENT.md` | 岗位关键词与仓库能力的对应说明。 |
-| `COURSE-PROJECT-MANUAL.md` | 课程大作业结构、答辩题参考（可选）。 |
+| `COURSE-PROJECT-MANUAL.md` | 项目报告模板与讲解提纲（可选）。 |
 | `SETUP-OTHER-MACHINE.md` | 新电脑/新环境：版本、端口、启动顺序、跨平台说明。 |
 | `K8S.md` | 本地 Kubernetes（kind 等）部署与故障排查。 |
 | `ES-NOTE.md` | Elasticsearch 商品检索与 IK 分词说明。 |
@@ -47,6 +46,12 @@
 | `debug-api.sh` | Linux/macOS：同上，curl 版。 |
 | `stress_seckill.py` | 多账号并发秒杀压测（默认请求网关）。 |
 | `requirements.txt` | 压测脚本 Python 依赖（如 `requests`）。 |
+
+## `perf/`
+
+| 文件 | 用途 |
+|------|------|
+| `k6-job.yaml` | 集群内 k6 压测 Job（手动执行，不随默认部署自动创建）。 |
 
 ---
 
@@ -237,9 +242,9 @@
 
 ---
 
-## 与常见作业要求的对应关系
+## 功能与结构对照清单
 
-| 要求 | 主要落点 |
+| 维度 | 主要落点 |
 |------|----------|
 | 数据库表（不少于 8） | `schema.sql` |
 | 微服务 + 网关限流/熔断 | `bcommerce-gateway` 模块及 `application.yml` |
