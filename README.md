@@ -1,4 +1,4 @@
-# 电商秒杀演示项目（16GB 友好）
+# 电商秒杀演示项目
 
 **换机 / 新环境**：先看 [`docs/SETUP-OTHER-MACHINE.md`](docs/SETUP-OTHER-MACHINE.md)。
 
