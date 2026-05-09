@@ -1,32 +1,35 @@
 # 电商秒杀演示项目
 
-**换机 / 新环境**：先看 [`docs/SETUP-OTHER-MACHINE.md`](docs/SETUP-OTHER-MACHINE.md)。
+本仓库提供一套**可本地复现**的电商秒杀链路：买家浏览商品、选择秒杀活动下单、查看订单；商家上架商品并查看关联订单。  
+默认配置面向 **16GB 内存笔记本**，优先保证“能一键跑通、方便演示与写报告”。
 
-**环境版本**：JDK **17**、Maven **≥ 3.6.3**、Docker（Compose v2）、前端 **Node ≥ 18**。构建时 Enforcer 会校验 JDK/Maven。
+## 一、运行环境
 
-Maven 多模块：
+- **JDK**：17  
+- **Maven**：≥ 3.6.3  
+- **Docker**：Docker Desktop（Compose v2）  
+- **Node.js**：≥ 18（仅前端需要）
 
-- **`bcommerce-gateway`**：Spring Cloud Gateway（:8080），Redis 限流 + 熔断回退。
-- **`bcommerce-commerce`**：业务服务（:8081），MyBatis + MySQL + Redis + RabbitMQ。
+换机/新环境常见问题见：`docs/SETUP-OTHER-MACHINE.md`。
 
-业务域按职责拆分为：**商品、交易、营销（秒杀）、履约、结算、风控（异步）**。  
-主交易链路（登录 -> 浏览商品 -> 秒杀下单 -> 订单查询）在本仓库可直接跑通，异步链路用于履约与风控任务落库，便于演示同步/异步边界。
+## 二、最快启动（推荐，面向答辩演示）
 
-表结构：**12 张物理表**（订单与明细按 `user_id%2` 分表，见 `docs/ARCHITECTURE.md`）。
+把仓库克隆到任意目录后，在仓库根目录双击或执行：
 
-## 一键启动（推荐）
-
-在仓库根目录执行：
+- 双击 `run-one-click.bat`（Windows）
+- 或命令行：
 
 ```powershell
 powershell -ExecutionPolicy Bypass -NoProfile -File .\scripts\one-click.ps1
 ```
 
-脚本会自动完成：
+它会按顺序完成：
 
-1. K8s 部署/更新（Docker Desktop Kubernetes）
-2. 后台启动网关 `port-forward`（`localhost:8080`）
-3. 前台启动前端 `npm run dev`（`http://localhost:5173`）
+1. **构建后端 jar**（`mvn -DskipTests package`）
+2. **构建镜像**（gateway/commerce/elasticsearch）
+3. **部署到 Docker Desktop Kubernetes**（`kubectl apply -f k8s/`）
+4. **后台启动网关 port-forward**：`http://127.0.0.1:8080`
+5. **前台启动前端 dev server**：`http://localhost:5173`
 
 仅启动后端（不启动前端）：
 
@@ -34,7 +37,75 @@ powershell -ExecutionPolicy Bypass -NoProfile -File .\scripts\one-click.ps1
 powershell -ExecutionPolicy Bypass -NoProfile -File .\scripts\one-click.ps1 -SkipFrontend
 ```
 
-## 启动
+## 三、手动部署（便于写报告：每一步可截图）
+
+下面按“依赖 -> 后端 -> 前端 -> 验证”的顺序写，适合在报告里描述实现与部署过程。
+
+### 3.1 启动基础设施（Docker Compose）
+
+在仓库根目录执行：
+
+```powershell
+docker compose up -d
+```
+
+默认会启动：
+
+- MySQL（宿主机端口 **3308**）
+- Redis（宿主机端口 **6380**）
+- RabbitMQ（5672 / 管理台 15672）
+- Elasticsearch（9200，包含 IK）
+
+首次或修改 `docker/elasticsearch/Dockerfile` 后需要先构建 ES：
+
+```powershell
+docker compose build elasticsearch
+docker compose up -d elasticsearch
+```
+
+### 3.2 构建并启动后端（本机运行）
+
+```powershell
+mvn -q -DskipTests package
+java -jar bcommerce-commerce\\target\\bcommerce-commerce-1.0.0-SNAPSHOT.jar
+java -jar bcommerce-gateway\\target\\bcommerce-gateway-1.0.0-SNAPSHOT.jar
+```
+
+说明：
+
+- commerce 默认 8081，gateway 默认 8080。
+- 业务配置默认对齐 compose 的端口映射（MySQL 3308、Redis 6380）。
+
+### 3.3 构建并启动前端
+
+```powershell
+cd frontend
+npm install
+npm run dev
+```
+
+浏览器打开 `http://localhost:5173/`。
+
+### 3.4 验证接口（可写入报告的“结果验证”）
+
+```powershell
+curl.exe http://127.0.0.1:8080/actuator/health
+curl.exe http://127.0.0.1:8080/api/c/products
+curl.exe http://127.0.0.1:8080/api/c/seckill/activities
+```
+
+## 四、Kubernetes 部署（可选：更像线上）
+
+K8s 方式适合演示“容器化+编排”的流程。文档详见：`docs/K8S.md`。
+
+典型流程（Docker Desktop Kubernetes）：
+
+```powershell
+powershell -ExecutionPolicy Bypass -NoProfile -File .\\scripts\\k8s-kind-up.ps1 -DockerDesktop
+kubectl -n bcommerce port-forward svc/bcommerce-gateway 8080:8080
+```
+
+## 五、账号与功能入口
 
 在**仓库根目录**（克隆后的 `ecommerce-platform-demo` 路径）执行：
 
@@ -87,7 +158,15 @@ mvn -pl bcommerce-gateway spring-boot:run
 - 商家 `merchant` / `demo123`
 - 买家 `buyer` / `demo123`
 
-## 调试与压测脚本
+页面入口（前端）：
+
+- `/`：商品列表（含分类与搜索）
+- `/products/:id`：商品详情
+- `/seckill`：秒杀活动列表与下单
+- `/orders`：我的订单
+- `/merchant`：商家后台（上架商品、查看关联订单）
+
+## 六、调试与压测（写报告常用）
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts\debug-api.ps1
@@ -115,7 +194,19 @@ kubectl -n bcommerce wait --for=condition=complete job/k6-activities --timeout=2
 kubectl -n bcommerce logs job/k6-activities
 ```
 
-## 文档
+## 七、写报告 / 答辩建议（直接可用）
+
+建议准备以下截图（每张图配 1～2 句说明即可）：
+
+1. **首页商品**：展示分类、搜索与商品卡片（证明商品模块可用）
+2. **秒杀页**：展示活动时间、库存、限购与下单按钮（证明秒杀链路可用）
+3. **我的订单**：展示订单号、金额、类型、下单时间与明细（证明订单落库与查询可用）
+4. **商家后台**：展示上架表单与关联订单列表（证明 B 端能力）
+5. （可选）`kubectl get pods -n bcommerce` 或 `docker compose ps`：证明容器化与编排部署
+
+报告里“表结构说明”可引用：`bcommerce-commerce/src/main/resources/schema.sql`（本项目 12 张物理表，含订单分表）。
+
+## 八、文档索引
 
 - **语言约定**：`README.md` 与 `docs/*.md` 为**中文**；前端界面为**中文**；**Java 接口错误信息、SQL 种子文案、压测脚本输出**仍为**英文**。
 - `docs/ARCHITECTURE.md`：架构、核心链路、模块说明。

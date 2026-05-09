@@ -15,7 +15,7 @@ docker compose build elasticsearch
 docker compose up -d elasticsearch
 ```
 
-若插件下载失败（网络限制），可开代理后重试构建，或到 [release.infinilabs.com](https://release.infinilabs.com/analysis-ik/stable/) 下载对应 zip，改为 Dockerfile 里 `COPY` + `elasticsearch-plugin install file:///...`。
+若插件下载失败（网络限制），可改为离线安装：下载对应 zip 后在 Dockerfile 里 `COPY`，再用 `elasticsearch-plugin install file:///...` 安装。
 
 ## 本地运行
 
