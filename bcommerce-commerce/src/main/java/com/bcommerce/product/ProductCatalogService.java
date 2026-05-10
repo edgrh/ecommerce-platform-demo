@@ -1,8 +1,10 @@
 package com.bcommerce.product;
 
 import com.bcommerce.mapper.ProductSpuMapper;
+import com.bcommerce.mapper.ProductSkuMapper;
 import com.bcommerce.product.es.ProductSpuEsService;
 import com.bcommerce.web.dto.ProductSpuDetailResponse;
+import com.bcommerce.web.dto.ProductSkuBriefResponse;
 import com.bcommerce.web.dto.ProductSpuResponse;
 import com.bcommerce.model.ProductSpu;
 import java.util.List;
@@ -20,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 public class ProductCatalogService {
 
     private final ProductSpuMapper spuMapper;
+    private final ProductSkuMapper skuMapper;
     private final ProductListCache productListCache;
     private final ProductSpuEsService productSpuEsService;
 
@@ -57,6 +60,7 @@ public class ProductCatalogService {
         if (p == null || !"ON_SHELF".equals(p.getStatus())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "商品不存在或已下架");
         }
-        return ProductSpuDetailResponse.from(p);
+        var skus = skuMapper.findBySpuId(p.getId()).stream().map(ProductSkuBriefResponse::from).toList();
+        return ProductSpuDetailResponse.from(p, skus);
     }
 }

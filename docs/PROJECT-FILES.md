@@ -24,6 +24,7 @@
 | `COURSE-PROJECT-MANUAL.md` | 项目报告模板与讲解提纲（可选）。 |
 | `SETUP-OTHER-MACHINE.md` | 新电脑/新环境：版本、端口、启动顺序、跨平台说明。 |
 | `K8S.md` | 本地 Kubernetes（kind 等）部署与故障排查。 |
+| `CLOUD-DEPLOY.md` | 云上单机（轻量 / ECS）：Docker Compose + 后端 + Nginx 同域代理。 |
 | `ES-NOTE.md` | Elasticsearch 商品检索与 IK 分词说明。 |
 | `PROJECT-FILES.md` | 本文件：全项目文件用途索引。 |
 

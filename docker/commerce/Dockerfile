@@ -1,6 +1,7 @@
 # 在仓库根执行: mvn -q -DskipTests package
 # docker build -f docker/commerce/Dockerfile -t bcommerce/commerce:local .
-FROM eclipse-temurin:17-jre-alpine
+# 基础镜像：DaoCloud 公共代理（等同 Docker Hub library/eclipse-temurin）
+FROM docker.m.daocloud.io/library/eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY bcommerce-commerce/target/bcommerce-commerce-1.0.0-SNAPSHOT.jar app.jar
 EXPOSE 8081

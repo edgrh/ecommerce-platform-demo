@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: rabbitmq
-          image: rabbitmq:3.13-management-alpine
+          image: docker.m.daocloud.io/library/rabbitmq:3.13-management-alpine
           ports:
             - containerPort: 5672
             - containerPort: 15672

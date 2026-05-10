@@ -16,9 +16,21 @@ async function submit() {
   try {
     if (mode.value === 'login') await auth.login(username.value, password.value)
     else await auth.register(username.value, password.value)
-    await router.replace(route.query.redirect || '/')
   } catch (e) {
-    err.value = e.response?.data?.error || '操作失败'
+    err.value =
+      e.response?.data?.error ||
+      (typeof e.message === 'string' ? e.message : '') ||
+      '登录/注册请求失败（请用 http:// 访问本站，并在开发者工具 Network 里查看 /api/auth/login）'
+    return
+  }
+  const redirectRaw = route.query.redirect
+  const redirectPath = Array.isArray(redirectRaw) ? redirectRaw[0] : redirectRaw || '/'
+  try {
+    await router.replace(redirectPath)
+  } catch (e) {
+    // 登录已成功；跳转异常不应掩盖成功（例如重复导航）
+    console.warn('login redirect:', e)
+    window.location.href = redirectPath
   }
 }
 </script>

@@ -1,8 +1,7 @@
-# Base images from Docker Hub. If pull is slow in China, set Docker Desktop -> Settings -> Docker Engine
-# registry-mirrors (e.g. your Aliyun mirror); avoid broken mirrors that return 401.
+# 基础镜像走 DaoCloud 公共代理（docker.m.daocloud.io），海外环境可改回 mysql:8.0 等短名并配 registry-mirrors。
 services:
   mysql:
-    image: mysql:8.0
+    image: docker.m.daocloud.io/library/mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: bcommerce
@@ -11,12 +10,12 @@ services:
       - "3308:3306"
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
   redis:
-    image: redis:7-alpine
+    image: docker.m.daocloud.io/library/redis:7-alpine
     # Host 6379 is often taken by a local Redis; use 6380 on host -> 6379 in container.
     ports:
       - "6380:6379"
   rabbitmq:
-    image: rabbitmq:3.13-management-alpine
+    image: docker.m.daocloud.io/library/rabbitmq:3.13-management-alpine
     ports:
       - "5672:5672"
       - "15672:15672"

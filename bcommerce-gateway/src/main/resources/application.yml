@@ -17,6 +17,9 @@ spring:
             allowedOriginPatterns:
               - "http://localhost:*"
               - "http://127.0.0.1:*"
+              # Deployed demo site (Nginx on cloud host)
+              - "http://117.72.34.13"
+              - "http://117.72.34.13:*"
             allowedMethods:
               - GET
               - POST

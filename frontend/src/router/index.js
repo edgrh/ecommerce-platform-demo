@@ -7,6 +7,7 @@ const router = createRouter({
     { path: '/', component: () => import('../views/HomeView.vue') },
     { path: '/products/:id', component: () => import('../views/ProductDetailView.vue') },
     { path: '/seckill', component: () => import('../views/SeckillView.vue') },
+    { path: '/cart', component: () => import('../views/CartView.vue'), meta: { auth: true, role: 'CUSTOMER' } },
     { path: '/orders', component: () => import('../views/OrdersView.vue'), meta: { auth: true } },
     { path: '/login', component: () => import('../views/LoginView.vue') },
     {

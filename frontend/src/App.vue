@@ -13,6 +13,7 @@ auth.restore()
       <nav>
         <RouterLink to="/">商品</RouterLink>
         <RouterLink to="/seckill">秒杀</RouterLink>
+        <RouterLink v-if="auth.token && auth.role === 'CUSTOMER'" to="/cart">购物车</RouterLink>
         <RouterLink to="/orders">我的订单</RouterLink>
         <RouterLink v-if="auth.role === 'MERCHANT'" to="/merchant">商家后台</RouterLink>
         <template v-if="auth.token">

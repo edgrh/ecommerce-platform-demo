@@ -94,6 +94,8 @@ curl.exe http://127.0.0.1:8080/api/c/products
 curl.exe http://127.0.0.1:8080/api/c/seckill/activities
 ```
 
+**云上单机（轻量 / ECS）**：不在本机跑 Kubernetes 时，可在买的 Linux 云主机上用 Compose + JAR（或容器）+ Nginx 对外提供服务；规格、安全组、构建步骤与同域代理示例见 [`docs/CLOUD-DEPLOY.md`](docs/CLOUD-DEPLOY.md)。
+
 ## 四、Kubernetes 部署（可选：更像线上）
 
 K8s 方式适合演示“容器化+编排”的流程。文档详见：`docs/K8S.md`。

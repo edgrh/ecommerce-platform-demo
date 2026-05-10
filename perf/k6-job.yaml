@@ -86,7 +86,7 @@ spec:
       restartPolicy: Never
       containers:
         - name: k6
-          image: grafana/k6:0.51.0
+          image: docker.m.daocloud.io/grafana/k6:0.51.0
           args:
             - run
             - /scripts/k6-activities.js
