@@ -64,32 +64,75 @@ onMounted(load)
 
 <template>
   <div>
-    <h1>购物车</h1>
-    <p v-if="err" class="err">{{ err }}</p>
-
-    <div v-if="!list.length" class="card">购物车是空的。</div>
-
-    <div v-for="it in list" :key="it.skuId" class="card row">
-      <div class="left">
-        <div class="title">{{ it.title || '商品' }}</div>
-        <div class="meta">SKU：{{ it.skuId }} · 单价：{{ (it.unitPriceCent / 100).toFixed(2) }} 元</div>
+    <div class="page-head">
+      <div>
+        <h1>购物车</h1>
+        <p class="subtle">数量变更会实时写入 Redis。</p>
       </div>
-      <div class="right">
-        <button type="button" :disabled="busy" @click="setQty(it.skuId, Math.max(1, it.quantity - 1))">-</button>
-        <span class="qty">{{ it.quantity }}</span>
-        <button type="button" :disabled="busy" @click="setQty(it.skuId, Math.min(99, it.quantity + 1))">+</button>
-        <button type="button" class="danger" :disabled="busy" @click="remove(it.skuId)">删除</button>
+      <div class="toolbar">
+        <button v-if="list.length" type="button" class="ghost danger" :disabled="busy" @click="clearAll">
+          清空
+        </button>
       </div>
     </div>
 
-    <div v-if="list.length" class="card total">
-      <div>合计：<strong>{{ (totalCent() / 100).toFixed(2) }}</strong> 元</div>
-      <button type="button" class="danger" :disabled="busy" @click="clearAll">清空购物车</button>
+    <p v-if="err" class="err">{{ err }}</p>
+
+    <div v-if="!list.length" class="card empty">
+      <span>购物车是空的。</span>
+      <a class="ghost" href="/">去逛商品</a>
+    </div>
+
+    <div v-if="list.length" class="grid">
+      <div v-for="it in list" :key="it.skuId" class="card row">
+        <div class="left">
+          <div class="title">{{ it.title || '商品' }}</div>
+          <div class="meta">
+            <span class="badge">SKU {{ it.skuId }}</span>
+            <span class="badge ghosty">单价 {{ (it.unitPriceCent / 100).toFixed(2) }} 元</span>
+          </div>
+        </div>
+        <div class="right">
+          <div class="stepper">
+            <button
+              type="button"
+              :disabled="busy"
+              class="sbtn"
+              @click="setQty(it.skuId, Math.max(1, it.quantity - 1))"
+            >
+              −
+            </button>
+            <span class="qty">{{ it.quantity }}</span>
+            <button
+              type="button"
+              :disabled="busy"
+              class="sbtn"
+              @click="setQty(it.skuId, Math.min(99, it.quantity + 1))"
+            >
+              +
+            </button>
+          </div>
+          <button type="button" class="ghost danger" :disabled="busy" @click="remove(it.skuId)">删除</button>
+        </div>
+      </div>
+
+      <div class="card total">
+        <div class="sum">
+          <div class="muted">合计</div>
+          <div class="money">{{ (totalCent() / 100).toFixed(2) }} 元</div>
+        </div>
+        <div class="hint">结算/下单可在后续扩展，此处先完成购物车闭环。</div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
 .row {
   display: flex;
   justify-content: space-between;
@@ -100,9 +143,10 @@ onMounted(load)
   font-weight: 700;
 }
 .meta {
-  margin-top: 6px;
-  color: #64748b;
-  font-size: 13px;
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .right {
   display: flex;
@@ -110,32 +154,75 @@ onMounted(load)
   align-items: center;
   white-space: nowrap;
 }
-.qty {
-  display: inline-block;
-  min-width: 24px;
-  text-align: center;
-  font-family: monospace;
+.badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.65);
+  color: #334155;
 }
-button {
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+.badge.ghosty {
+  background: rgba(15, 23, 42, 0.04);
+  color: #475569;
 }
 .danger {
-  border-color: #fecaca;
   color: #b91c1c;
+  border-color: rgba(248, 113, 113, 0.35);
 }
 .total {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 8px;
+}
+.sum {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
+}
+.money {
+  font-size: 20px;
+  font-weight: 900;
+}
+.hint {
+  color: #64748b;
+  font-size: 13px;
+}
+.stepper {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.7);
+  padding: 6px 8px;
+}
+.sbtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  line-height: 30px;
+  font-size: 18px;
+}
+.qty {
+  display: inline-block;
+  min-width: 28px;
+  text-align: center;
+  font-family: monospace;
+  font-size: 14px;
+  color: #0f172a;
+}
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .right {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
 }
 </style>
 

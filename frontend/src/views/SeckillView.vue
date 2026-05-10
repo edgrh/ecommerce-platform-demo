@@ -69,13 +69,23 @@ async function buy(id) {
 
 <template>
   <div>
-    <h1>秒杀</h1>
-    <p class="sub">Redis 预减 + 数据库事务；支付为 Resilience4j 熔断 mock。</p>
+    <div class="page-head">
+      <div>
+        <h1>秒杀</h1>
+        <p class="subtle">Redis 预减 + 数据库事务；支付为 Resilience4j 熔断 mock。</p>
+      </div>
+    </div>
     <p class="hint">
       每个秒杀活动<strong>固定绑定一款商品</strong>（由商家在后台配置），本页无需再选商品；下方卡片即活动与对应商品。
     </p>
     <p v-if="roleHint" class="warn">{{ roleHint }}</p>
-    <label>数量 <input v-model.number="qty" type="number" min="1" max="5" /></label>
+    <div class="toolbar">
+      <label class="pill">
+        数量
+        <input v-model.number="qty" type="number" min="1" max="5" style="width: 84px" />
+      </label>
+      <span class="muted">建议 1~2 件，避免触发限购或限流。</span>
+    </div>
     <p v-if="err" class="err">{{ err }}</p>
     <div v-for="a in acts" :key="a.id" class="card">
       <div class="t">{{ a.name }}</div>
@@ -100,22 +110,10 @@ async function buy(id) {
 </template>
 
 <style scoped>
-.sub {
-  color: #64748b;
-  margin-bottom: 8px;
-}
 .hint {
   font-size: 0.9rem;
   color: #475569;
   line-height: 1.5;
-  margin-bottom: 12px;
-}
-.warn {
-  font-size: 0.9rem;
-  color: #b45309;
-  background: #fffbeb;
-  padding: 8px 10px;
-  border-radius: 6px;
   margin-bottom: 12px;
 }
 .t {

@@ -10,6 +10,7 @@ import com.bcommerce.model.ProductSpu;
 import com.bcommerce.model.SeckillActivity;
 import com.bcommerce.model.UserAccount;
 import java.time.LocalDateTime;
+import java.time.Month;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -196,7 +197,8 @@ public class DemoSeedRunner implements ApplicationRunner {
         productSkuMapper.insert(earpodsSku);
 
         LocalDateTime start = LocalDateTime.now().minusHours(1);
-        LocalDateTime end = LocalDateTime.now().plusDays(7);
+        // 答辩在 5/19，活动截止延后到 6/18，避免演示时活动过期。
+        LocalDateTime end = LocalDateTime.of(2026, Month.JUNE, 18, 23, 59);
 
         SeckillActivity act1 = new SeckillActivity();
         act1.setSkuId(iphone17ProSku.getId());

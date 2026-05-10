@@ -36,35 +36,67 @@ async function submit() {
 </script>
 
 <template>
-  <div class="card" style="max-width: 400px">
-    <h2>{{ mode === 'login' ? '登录' : '注册' }}</h2>
-    <p class="hint">演示账号：商家 merchant / demo123；买家 buyer / demo123</p>
-    <input v-model="username" placeholder="用户名" />
-    <input v-model="password" type="password" placeholder="密码" />
-    <p v-if="err" class="err">{{ err }}</p>
-    <button class="primary" type="button" @click="submit">{{ mode === 'login' ? '登录' : '注册' }}</button>
-    <button type="button" class="link" @click="mode = mode === 'login' ? 'register' : 'login'">
-      {{ mode === 'login' ? '去注册' : '去登录' }}
-    </button>
+  <div class="wrap">
+    <div class="card panel">
+      <div class="head">
+        <div>
+          <h1>{{ mode === 'login' ? '登录' : '注册' }}</h1>
+          <p class="subtle">演示账号：商家 merchant / demo123；买家 buyer / demo123</p>
+        </div>
+      </div>
+
+      <div class="quick">
+        <button type="button" class="ghost" @click="(username = 'buyer'), (password = 'demo123')">填入买家</button>
+        <button type="button" class="ghost" @click="(username = 'merchant'), (password = 'demo123')">填入商家</button>
+      </div>
+
+      <div class="field">
+        <label>用户名</label>
+        <input v-model="username" placeholder="buyer / merchant" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>密码</label>
+        <input v-model="password" type="password" placeholder="demo123" autocomplete="current-password" />
+      </div>
+
+      <p v-if="err" class="err">{{ err }}</p>
+
+      <div class="actions">
+        <button class="primary" type="button" @click="submit">{{ mode === 'login' ? '登录' : '注册' }}</button>
+        <button type="button" class="ghost" @click="mode = mode === 'login' ? 'register' : 'login'">
+          {{ mode === 'login' ? '去注册' : '去登录' }}
+        </button>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-input {
-  display: block;
-  width: 100%;
-  margin-bottom: 10px;
-  box-sizing: border-box;
+.wrap {
+  min-height: calc(100vh - 160px);
+  display: grid;
+  place-items: center;
+  padding: 10px 0 26px;
 }
-.hint {
-  font-size: 13px;
-  color: #64748b;
+.panel {
+  width: min(520px, 100%);
+  padding: 18px;
 }
-.link {
-  margin-left: 12px;
-  background: none;
-  border: none;
-  color: #e11d48;
-  cursor: pointer;
+.head h1 {
+  margin: 0;
+  font-size: 26px;
+}
+.quick {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0 14px;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 10px;
 }
 </style>

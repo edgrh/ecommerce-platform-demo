@@ -56,78 +56,97 @@ async function publish() {
 
 <template>
   <div>
-    <h1>商家后台</h1>
-    <div class="card">
-      <h3>快速上架</h3>
-      <label class="field">
-        <span>商品名称</span>
-        <input v-model="title" placeholder="例如：电脑配件" />
-      </label>
-      <label class="field">
-        <span>SKU 编码</span>
-        <input v-model="sku" placeholder="例如：SKU-DEMO-1" />
-        <small class="hint">货号/规格编码，便于仓库与订单对应；可自定义，无「个/件」含义，单位在库存里体现。</small>
-      </label>
-      <label class="field">
-        <span>售价（元）</span>
-        <input v-model.number="priceYuan" type="number" min="0" step="0.01" placeholder="199" />
-      </label>
-      <label class="field">
-        <span>库存（件）</span>
-        <input v-model.number="stock" type="number" min="0" step="1" placeholder="100" />
-      </label>
-      <button class="primary" type="button" @click="publish">提交</button>
-    </div>
-    <h2>关联订单</h2>
-    <button class="ghost" type="button" @click="loadOrders">刷新订单</button>
-    <p v-if="err" class="err">{{ err }}</p>
-    <p v-if="!orders.length" class="hint">当前暂无关联订单，买家完成下单后会显示在这里。</p>
-    <div v-for="o in orders" :key="o.id" class="card">
-      <div class="order-top">
-        <span class="mono">{{ o.orderNo }}</span>
-        <span>{{ (o.totalCent / 100).toFixed(2) }} 元</span>
+    <div class="page-head">
+      <div>
+        <h1>商家后台</h1>
+        <p class="subtle">快速上架商品，并查看与本商家关联的订单。</p>
       </div>
-      <div class="meta">类型：{{ o.orderType }} · 状态：{{ o.status }}</div>
-      <div class="meta">下单时间：{{ o.createdAt?.replace('T', ' ') }}</div>
-      <ul v-if="o.items?.length">
-        <li v-for="(it, i) in o.items" :key="i">
-          {{ it.titleSnapshot }} x{{ it.quantity }}，单价 {{ (it.unitPriceCent / 100).toFixed(2) }} 元
-        </li>
-      </ul>
+      <div class="toolbar">
+        <button class="ghost" type="button" @click="loadOrders">刷新订单</button>
+      </div>
+    </div>
+
+    <p v-if="err" class="err">{{ err }}</p>
+
+    <div class="grid">
+      <div class="card">
+        <div class="section-title">快速上架</div>
+        <div class="field">
+          <label>商品名称</label>
+          <input v-model="title" placeholder="例如：电脑配件" />
+        </div>
+        <div class="field">
+          <label>SKU 编码</label>
+          <input v-model="sku" placeholder="例如：SKU-DEMO-1" />
+          <small class="hint">货号/规格编码，便于仓库与订单对应；可自定义；库存单位在「库存（件）」里体现。</small>
+        </div>
+        <div class="two">
+          <div class="field">
+            <label>售价（元）</label>
+            <input v-model.number="priceYuan" type="number" min="0" step="0.01" placeholder="199" />
+          </div>
+          <div class="field">
+            <label>库存（件）</label>
+            <input v-model.number="stock" type="number" min="0" step="1" placeholder="100" />
+          </div>
+        </div>
+        <div class="actions">
+          <button class="primary" type="button" @click="publish">提交上架</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">关联订单</div>
+        <p v-if="!orders.length" class="hint">当前暂无关联订单，买家完成下单后会显示在这里。</p>
+        <div v-for="o in orders" :key="o.id" class="order">
+          <div class="order-top">
+            <span class="mono">{{ o.orderNo }}</span>
+            <span class="price">{{ (o.totalCent / 100).toFixed(2) }} 元</span>
+          </div>
+          <div class="badges">
+            <span class="badge">{{ o.status }}</span>
+            <span class="badge ghosty">{{ o.orderType }}</span>
+          </div>
+          <div class="meta">下单时间：{{ o.createdAt?.replace('T', ' ') }}</div>
+          <ul v-if="o.items?.length" class="items">
+            <li v-for="(it, i) in o.items" :key="i">
+              <span class="t">{{ it.titleSnapshot }}</span>
+              <span class="q"
+                >x{{ it.quantity }} · {{ (it.unitPriceCent / 100).toFixed(2) }} 元</span
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <style scoped>
-.field {
-  display: block;
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 12px;
+  align-items: start;
+}
+.section-title {
+  font-weight: 900;
   margin-bottom: 12px;
-}
-.field > span {
-  display: block;
-  font-size: 0.9rem;
-  margin-bottom: 4px;
-  color: #444;
-}
-.field input {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
 }
 .hint {
   display: block;
   margin-top: 4px;
-  font-size: 0.8rem;
-  color: #666;
+  font-size: 0.85rem;
+  color: #64748b;
   line-height: 1.4;
 }
-.ghost {
-  margin-bottom: 8px;
-  border: 1px solid #cbd5e1;
-  background: #fff;
-  border-radius: 6px;
-  padding: 6px 10px;
-  cursor: pointer;
+.two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.actions {
+  margin-top: 8px;
 }
 .order-top {
   display: flex;
@@ -135,19 +154,70 @@ async function publish() {
   gap: 8px;
   font-weight: 600;
 }
+.price {
+  font-weight: 900;
+}
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 12px;
 }
 .meta {
-  margin-top: 6px;
+  margin-top: 10px;
   color: #64748b;
   font-size: 13px;
 }
-ul {
-  margin: 8px 0 0;
-  padding-left: 18px;
+.order {
+  border-top: 1px dashed rgba(148, 163, 184, 0.35);
+  padding-top: 12px;
+  margin-top: 12px;
+}
+.badges {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.badge {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.65);
+  color: #334155;
+}
+.badge.ghosty {
+  background: rgba(15, 23, 42, 0.04);
   color: #475569;
-  font-size: 14px;
+}
+.items {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+.items li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: rgba(255, 255, 255, 0.55);
+}
+.t {
+  color: #334155;
+}
+.q {
+  font-family: monospace;
+  color: #475569;
+}
+@media (max-width: 880px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .two {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
