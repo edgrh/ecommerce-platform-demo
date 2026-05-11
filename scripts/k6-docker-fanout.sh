@@ -15,6 +15,7 @@
 #   PRE_VUS_PER=800     每容器预分配 VU
 #   MAX_VUS_PER=8000    每容器最大 VU
 #   STRICT=             传给 k6（如 STRICT=1）
+#   SHARD_MOD=64        传给 k6：需网关 stress profile 才按 X-Stress-Shard 拆桶（见 docs/PERF-STRESS.md）
 #
 # 示例：4 容器 × 2500 iter/s ≈ 10000 迭代/秒 总到达率（网关侧约 4 个客户端 IP）：
 #   NUM=4 TOTAL_RATE=10000 DURATION=1m ./scripts/k6-docker-fanout.sh
@@ -94,6 +95,9 @@ echo
 EXTRA_ENV=()
 if [[ -n "${STRICT:-}" ]]; then
   EXTRA_ENV+=(-e "STRICT=$STRICT")
+fi
+if [[ -n "${SHARD_MOD:-}" ]]; then
+  EXTRA_ENV+=(-e "SHARD_MOD=$SHARD_MOD")
 fi
 
 i=1

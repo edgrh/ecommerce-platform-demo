@@ -35,8 +35,9 @@ spring:
           filters:
             - name: RequestRateLimiter
               args:
-                redis-rate-limiter.replenishRate: 120
-                redis-rate-limiter.burstCapacity: 240
+                # 默认单机演示：按 IP 约 120/s。压测请用 profile=stress 或改 bcommerce.gateway.* 属性。
+                redis-rate-limiter.replenishRate: ${bcommerce.gateway.rl-replenish:120}
+                redis-rate-limiter.burstCapacity: ${bcommerce.gateway.rl-burst:240}
                 key-resolver: "#{@ipKeyResolver}"
             - name: CircuitBreaker
               args:

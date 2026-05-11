@@ -1,0 +1,12 @@
+# 仅压测 / 实验：大幅提高入口限流，便于 k6 多容器或高 RATE 验证吞吐。
+# 启动网关：SPRING_PROFILES_ACTIVE=stress java -jar bcommerce-gateway-...jar
+# 勿在生产环境启用 stress profile。
+spring:
+  config:
+    activate:
+      on-profile: stress
+
+bcommerce:
+  gateway:
+    rl-replenish: 50000
+    rl-burst: 100000
