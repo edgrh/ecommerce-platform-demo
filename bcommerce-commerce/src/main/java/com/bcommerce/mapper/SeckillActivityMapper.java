@@ -1,6 +1,7 @@
 package com.bcommerce.mapper;
 
 import com.bcommerce.model.SeckillActivity;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -27,6 +28,10 @@ public interface SeckillActivityMapper {
             "SELECT id, sku_id AS skuId, name, seckill_price_cent AS seckillPriceCent, total_stock AS totalStock, sold_stock AS soldStock, "
                     + "limit_per_user AS limitPerUser, start_time AS startTime, end_time AS endTime, status FROM bc_seckill_activity WHERE status = 'ONLINE' ORDER BY id DESC")
     List<SeckillActivity> listOnline();
+
+    /** Align demo/presentation end time when DB was seeded with an older deadline. */
+    @Update("UPDATE bc_seckill_activity SET end_time = #{end} WHERE status = 'ONLINE'")
+    int extendOnlineEndTime(@Param("end") LocalDateTime end);
 
     @Update(
             "UPDATE bc_seckill_activity SET sold_stock = sold_stock + #{qty} WHERE id = #{id} AND sold_stock + #{qty} <= total_stock AND status = 'ONLINE'")

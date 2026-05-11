@@ -57,8 +57,8 @@ public class DemoSeedRunner implements ApplicationRunner {
 
         ProductSpu iphone17Pro = new ProductSpu();
         iphone17Pro.setCategoryId(1L);
-        iphone17Pro.setTitle("Apple iPhone 17 Pro 256GB 银色");
-        iphone17Pro.setSubtitle("A19 Pro · 6.3 英寸超视网膜 XDR · 铝金属一体成型 · Ceramic Shield 2");
+        iphone17Pro.setTitle("Apple iPhone 17 Pro");
+        iphone17Pro.setSubtitle("A19 Pro · 6.3 英寸超视网膜 XDR · 多存储与配色可选 · Ceramic Shield 2");
         iphone17Pro.setDetail(
                 """
                 主要参数概览：
@@ -67,18 +67,46 @@ public class DemoSeedRunner implements ApplicationRunner {
                 · 机身：铝金属一体成型，正反面 Ceramic Shield 2，防水防尘等级 IP68
                 · 尺寸重量：约 150×71.9×8.8 mm，约 206 g
                 · 影像：多摄组合，支持高帧率 4K 视频与夜景拍摄
-                · 存储：256GB（本 SKU）""");
+                · 下单前请在详情页选择存储容量与颜色（对应不同 SKU）""");
         iphone17Pro.setMerchantId(merchant.getId());
         iphone17Pro.setStatus("ON_SHELF");
         productSpuMapper.insert(iphone17Pro);
 
-        ProductSku iphone17ProSku = new ProductSku();
-        iphone17ProSku.setSpuId(iphone17Pro.getId());
-        iphone17ProSku.setSkuCode("SKU-IPHONE17-PRO-256-SLV");
-        iphone17ProSku.setSpecJson("{\"model\":\"iPhone 17 Pro\",\"storage\":\"256GB\",\"color\":\"silver\"}");
-        iphone17ProSku.setPriceCent(899900);
-        iphone17ProSku.setStock(600);
-        productSkuMapper.insert(iphone17ProSku);
+        ProductSku iphone17ProSku256Slv = new ProductSku();
+        iphone17ProSku256Slv.setSpuId(iphone17Pro.getId());
+        iphone17ProSku256Slv.setSkuCode("SKU-IPHONE17-PRO-256-SLV");
+        iphone17ProSku256Slv.setSpecJson(
+                "{\"model\":\"iPhone 17 Pro\",\"storage\":\"256GB\",\"color\":\"silver\",\"colorName\":\"银色\"}");
+        iphone17ProSku256Slv.setPriceCent(899900);
+        iphone17ProSku256Slv.setStock(600);
+        productSkuMapper.insert(iphone17ProSku256Slv);
+
+        ProductSku iphone17ProSku256Gld = new ProductSku();
+        iphone17ProSku256Gld.setSpuId(iphone17Pro.getId());
+        iphone17ProSku256Gld.setSkuCode("SKU-IPHONE17-PRO-256-GOLD");
+        iphone17ProSku256Gld.setSpecJson(
+                "{\"model\":\"iPhone 17 Pro\",\"storage\":\"256GB\",\"color\":\"gold\",\"colorName\":\"金色\"}");
+        iphone17ProSku256Gld.setPriceCent(929900);
+        iphone17ProSku256Gld.setStock(500);
+        productSkuMapper.insert(iphone17ProSku256Gld);
+
+        ProductSku iphone17ProSku512Slv = new ProductSku();
+        iphone17ProSku512Slv.setSpuId(iphone17Pro.getId());
+        iphone17ProSku512Slv.setSkuCode("SKU-IPHONE17-PRO-512-SLV");
+        iphone17ProSku512Slv.setSpecJson(
+                "{\"model\":\"iPhone 17 Pro\",\"storage\":\"512GB\",\"color\":\"silver\",\"colorName\":\"银色\"}");
+        iphone17ProSku512Slv.setPriceCent(999900);
+        iphone17ProSku512Slv.setStock(400);
+        productSkuMapper.insert(iphone17ProSku512Slv);
+
+        ProductSku iphone17ProSku512Blk = new ProductSku();
+        iphone17ProSku512Blk.setSpuId(iphone17Pro.getId());
+        iphone17ProSku512Blk.setSkuCode("SKU-IPHONE17-PRO-512-BLK");
+        iphone17ProSku512Blk.setSpecJson(
+                "{\"model\":\"iPhone 17 Pro\",\"storage\":\"512GB\",\"color\":\"space_black\",\"colorName\":\"深空黑色\"}");
+        iphone17ProSku512Blk.setPriceCent(1029900);
+        iphone17ProSku512Blk.setStock(350);
+        productSkuMapper.insert(iphone17ProSku512Blk);
 
         ProductSpu iphone17Pm = new ProductSpu();
         iphone17Pm.setCategoryId(1L);
@@ -201,7 +229,7 @@ public class DemoSeedRunner implements ApplicationRunner {
         LocalDateTime end = LocalDateTime.of(2026, Month.JUNE, 18, 23, 59);
 
         SeckillActivity act1 = new SeckillActivity();
-        act1.setSkuId(iphone17ProSku.getId());
+        act1.setSkuId(iphone17ProSku256Slv.getId());
         act1.setName("iPhone 17 Pro 限时秒杀");
         act1.setSeckillPriceCent(799900);
         act1.setTotalStock(200);

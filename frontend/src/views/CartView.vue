@@ -1,7 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import http from '../api/http'
 
+const router = useRouter()
 const list = ref([])
 const err = ref('')
 const busy = ref(false)
@@ -54,6 +56,29 @@ async function clearAll() {
     await load()
   } catch (e) {
     err.value = e.response?.data?.error || '操作失败'
+  } finally {
+    busy.value = false
+  }
+}
+
+async function checkout() {
+  busy.value = true
+  err.value = ''
+  try {
+    const { data } = await http.post(
+      '/c/cart/checkout',
+      {},
+      {
+        headers: {
+          'X-Idempotency-Key': 'cart-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10),
+        },
+      },
+    )
+    await load()
+    alert('支付成功（模拟），订单号 ' + data.orderNo + '。可在「我的订单」查看，商家后台可看到关联订单。')
+    await router.push('/orders')
+  } catch (e) {
+    err.value = e.response?.data?.error || e.message || '结算失败'
   } finally {
     busy.value = false
   }
@@ -121,7 +146,12 @@ onMounted(load)
           <div class="muted">合计</div>
           <div class="money">{{ (totalCent() / 100).toFixed(2) }} 元</div>
         </div>
-        <div class="hint">结算/下单可在后续扩展，此处先完成购物车闭环。</div>
+        <div class="pay-row">
+          <button type="button" class="primary pay" :disabled="busy" @click="checkout">
+            {{ busy ? '处理中…' : '去支付（模拟）' }}
+          </button>
+          <span class="hint">走与秒杀相同的 mock 支付链路，生成普通订单并出现在「我的订单」与商家后台。</span>
+        </div>
       </div>
     </div>
   </div>
@@ -187,6 +217,20 @@ onMounted(load)
 .hint {
   color: #64748b;
   font-size: 13px;
+  line-height: 1.45;
+  flex: 1;
+  min-width: 200px;
+}
+.pay-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+}
+.pay {
+  padding: 10px 22px;
+  font-size: 15px;
 }
 .stepper {
   display: inline-flex;

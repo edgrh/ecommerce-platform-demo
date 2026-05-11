@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.Update;
 
 @Mapper
 public interface ProductSpuMapper {
@@ -40,4 +41,8 @@ public interface ProductSpuMapper {
     int insert(ProductSpu row);
 
     List<ProductSpu> searchByKeyword(@Param("q") String q, @Param("limit") int limit);
+
+    @Update(
+            "UPDATE bc_product_spu SET title = #{title}, subtitle = #{subtitle} WHERE id = #{id} AND status = 'ON_SHELF'")
+    int updateTitleAndSubtitle(@Param("id") long id, @Param("title") String title, @Param("subtitle") String subtitle);
 }

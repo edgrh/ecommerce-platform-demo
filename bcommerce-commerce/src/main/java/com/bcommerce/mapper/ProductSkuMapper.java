@@ -16,6 +16,9 @@ public interface ProductSkuMapper {
     @Select("SELECT id, spu_id AS spuId, sku_code AS skuCode, spec_json AS specJson, price_cent AS priceCent, stock, sold FROM bc_product_sku WHERE id = #{id}")
     ProductSku findById(Long id);
 
+    @Select("SELECT id, spu_id AS spuId, sku_code AS skuCode, spec_json AS specJson, price_cent AS priceCent, stock, sold FROM bc_product_sku WHERE sku_code = #{skuCode} LIMIT 1")
+    ProductSku findBySkuCode(@Param("skuCode") String skuCode);
+
     @Select(
             "SELECT id, spu_id AS spuId, sku_code AS skuCode, spec_json AS specJson, price_cent AS priceCent, stock, sold FROM bc_product_sku WHERE spu_id = #{spuId}")
     List<ProductSku> findBySpuId(Long spuId);
