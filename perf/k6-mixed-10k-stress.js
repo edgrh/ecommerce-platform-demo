@@ -73,7 +73,8 @@ function shardHeaders() {
 }
 
 function jsonHeaders(token) {
-  const h = { 'Content-Type': 'application/json', ...shardHeaders() }
+  // k6 运行时不用对象展开，用 Object.assign
+  const h = Object.assign({ 'Content-Type': 'application/json' }, shardHeaders())
   if (token) h.Authorization = `Bearer ${token}`
   return h
 }
@@ -90,7 +91,7 @@ function loginBuyer() {
   const res = http.post(
     `${BASE_URL}/api/auth/login`,
     JSON.stringify({ username: 'buyer', password: 'demo123' }),
-    { headers: { 'Content-Type': 'application/json', ...shardHeaders() } }
+    { headers: Object.assign({ 'Content-Type': 'application/json' }, shardHeaders()) }
   )
   bumpStatus(res)
   check(res, { 'login 200': (r) => r.status === 200 })
@@ -205,7 +206,10 @@ export default function (data) {
     const res = http.post(
       `${BASE_URL}/api/c/seckill/orders`,
       JSON.stringify({ activityId: actId, quantity: 1 }),
-      { headers: { ...jsonHeaders(token), 'X-Idempotency-Key': key }, tags: { flow: 'seckill_order' } }
+      {
+        headers: Object.assign({}, jsonHeaders(token), { 'X-Idempotency-Key': key }),
+        tags: { flow: 'seckill_order' }
+      }
     )
     bumpStatus(res)
     check(res, { 'seckill order responded': (r) => r.status >= 200 && r.status < 500 })
