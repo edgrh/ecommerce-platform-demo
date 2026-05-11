@@ -11,10 +11,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/**
- * Existing databases may have been seeded before the June 18 deadline was applied in code.
- * This runner always aligns ONLINE activities to the presentation end time and refreshes Redis.
- */
+/** 将仍为 ONLINE 的秒杀活动结束时间统一到固定日期，并刷新 Redis 库存键。 */
 @Component
 @Order(11)
 @RequiredArgsConstructor
@@ -29,7 +26,7 @@ public class DemoSeckillSchedulePatchRunner implements ApplicationRunner {
         LocalDateTime end = LocalDateTime.of(2026, Month.JUNE, 18, 23, 59, 0);
         int n = seckillActivityMapper.extendOnlineEndTime(end);
         if (n > 0) {
-            log.info("Patched seckill end_time to {} for {} ONLINE activities", end, n);
+            log.info("已更新 {} 条 ONLINE 秒杀活动结束时间为 {}", n, end);
         }
         seckillStockRedisService.reloadAllActivities();
     }

@@ -1,4 +1,4 @@
 package com.bcommerce.web.dto;
 
-/** Batch lookup: lowest SKU price per SPU (for list/search enrichment). */
+/** 按 SPU 批量查最低价（分）。 */
 public record SpuMinPriceRow(Long spuId, Integer priceCent) {}

@@ -40,10 +40,7 @@ public class MerchantProductService {
         try {
             productSpuEsService.saveSpu(saved);
         } catch (Exception e) {
-            log.warn(
-                    "elasticsearch saveSpu failed after createSpu id={}, keyword search may lag until reindex: {}",
-                    saved.getId(),
-                    e.toString());
+            log.warn("ES 写入 SPU 失败 id={}，搜索可能暂不落索引: {}", saved.getId(), e.toString());
         }
         return ProductSpuResponse.from(saved);
     }

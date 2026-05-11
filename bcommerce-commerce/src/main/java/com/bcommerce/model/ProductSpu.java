@@ -13,6 +13,6 @@ public class ProductSpu {
     private Long merchantId;
     private String status;
     private LocalDateTime createdAt;
-    /** Lowest SKU price (yen×100); filled by list/search SQL, not a table column on spu. */
+    /** 在售 SKU 最低价（分）；由查询子查询填充，非表字段。 */
     private Integer minPriceCent;
 }

@@ -75,7 +75,7 @@ async function checkout() {
       },
     )
     await load()
-    alert('支付成功（模拟），订单号 ' + data.orderNo + '。可在「我的订单」查看，商家后台可看到关联订单。')
+    alert('支付成功（模拟），订单号 ' + data.orderNo)
     await router.push('/orders')
   } catch (e) {
     err.value = e.response?.data?.error || e.message || '结算失败'
@@ -150,7 +150,7 @@ onMounted(load)
           <button type="button" class="primary pay" :disabled="busy" @click="checkout">
             {{ busy ? '处理中…' : '去支付（模拟）' }}
           </button>
-          <span class="hint">走与秒杀相同的 mock 支付链路，生成普通订单并出现在「我的订单」与商家后台。</span>
+          <span class="hint">模拟支付，生成普通订单（我的订单、商家后台可见）。</span>
         </div>
       </div>
     </div>

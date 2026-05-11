@@ -225,7 +225,6 @@ public class DemoSeedRunner implements ApplicationRunner {
         productSkuMapper.insert(earpodsSku);
 
         LocalDateTime start = LocalDateTime.now().minusHours(1);
-        // 答辩在 5/19，活动截止延后到 6/18，避免演示时活动过期。
         LocalDateTime end = LocalDateTime.of(2026, Month.JUNE, 18, 23, 59);
 
         SeckillActivity act1 = new SeckillActivity();

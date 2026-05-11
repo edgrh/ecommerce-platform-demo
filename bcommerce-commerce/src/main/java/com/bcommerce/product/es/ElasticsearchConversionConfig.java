@@ -13,11 +13,7 @@ import org.springframework.data.elasticsearch.core.convert.ElasticsearchCustomCo
 @Configuration
 public class ElasticsearchConversionConfig {
 
-    /**
-     * Some existing indices store date-only strings (e.g. "2026-05-10") for fields
-     * mapped to {@link LocalDateTime}. Spring Data Elasticsearch will throw a ConversionException
-     * when reading search hits, which cascades into DB fallback and severe performance issues.
-     */
+    /** ES 可能返回仅日期的字符串，读入 LocalDateTime 时需宽松解析，避免搜索整段失败。 */
     @Bean
     public ElasticsearchCustomConversions elasticsearchCustomConversions() {
         return new ElasticsearchCustomConversions(List.of(new StringToLocalDateTimeLenient()));
@@ -34,22 +30,16 @@ public class ElasticsearchConversionConfig {
                 return null;
             }
             try {
-                // "2026-05-10T16:37:00.123"
                 return LocalDateTime.parse(s, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
             } catch (Exception ignored) {
-                // keep trying
             }
             try {
-                // "2026-05-10T16:37:00Z" / "2026-05-10T16:37:00+08:00"
                 return OffsetDateTime.parse(s, DateTimeFormatter.ISO_OFFSET_DATE_TIME).toLocalDateTime();
             } catch (Exception ignored) {
-                // keep trying
             }
             try {
-                // "2026-05-10"
                 return LocalDate.parse(s, DateTimeFormatter.ISO_LOCAL_DATE).atStartOfDay();
             } catch (Exception e) {
-                // Let Spring decide how to report if still unsupported.
                 throw e;
             }
         }

@@ -29,7 +29,6 @@ public interface SeckillActivityMapper {
                     + "limit_per_user AS limitPerUser, start_time AS startTime, end_time AS endTime, status FROM bc_seckill_activity WHERE status = 'ONLINE' ORDER BY id DESC")
     List<SeckillActivity> listOnline();
 
-    /** Align demo/presentation end time when DB was seeded with an older deadline. */
     @Update("UPDATE bc_seckill_activity SET end_time = #{end} WHERE status = 'ONLINE'")
     int extendOnlineEndTime(@Param("end") LocalDateTime end);
 

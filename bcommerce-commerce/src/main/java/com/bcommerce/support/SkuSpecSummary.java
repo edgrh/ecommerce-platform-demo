@@ -3,7 +3,7 @@ package com.bcommerce.support;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/** Human-readable spec line for SKU cards and order snapshots (demo JSON in bc_product_sku.spec_json). */
+/** 从 SKU 的 spec_json 拼一条可读规格摘要（订单快照、详情页）。 */
 public final class SkuSpecSummary {
 
     private static final ObjectMapper M = new ObjectMapper();
@@ -73,7 +73,6 @@ public final class SkuSpecSummary {
         return s.codePoints().anyMatch(cp -> Character.UnicodeScript.of(cp) == Character.UnicodeScript.HAN);
     }
 
-    /** Normalize tokens like "Deep Blue", "sliver" (typo) for lookup. */
     private static String normColorKey(String s) {
         if (s == null || s.isBlank()) {
             return "";

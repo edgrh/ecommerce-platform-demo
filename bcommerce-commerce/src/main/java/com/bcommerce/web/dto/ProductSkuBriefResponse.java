@@ -3,13 +3,13 @@ package com.bcommerce.web.dto;
 import com.bcommerce.model.ProductSku;
 import com.bcommerce.support.SkuSpecSummary;
 
+/** 详情页 SKU 行；specJson 供前端规格选择，specSummary 为可读摘要。 */
 public record ProductSkuBriefResponse(
         long id,
         String skuCode,
         int priceCent,
         int stock,
         String specSummary,
-        /** Raw JSON for storefront spec pickers (storage / color, etc.). */
         String specJson) {
     public static ProductSkuBriefResponse from(ProductSku s) {
         return new ProductSkuBriefResponse(

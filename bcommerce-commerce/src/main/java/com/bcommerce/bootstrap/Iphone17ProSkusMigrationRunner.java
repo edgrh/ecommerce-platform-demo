@@ -14,10 +14,7 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/**
- * Older demo DBs shipped a single SKU titled "Apple iPhone 17 Pro 256GB 银色". Migrate to one SPU
- * with multiple SKUs (storage × color) so the storefront can offer configuration choices.
- */
+/** 旧库若 iPhone 17 Pro 仅一条 SKU，则补全多规格 SKU 并更新 SPU 标题。 */
 @Component
 @Order(15)
 @RequiredArgsConstructor
@@ -73,9 +70,9 @@ public class Iphone17ProSkusMigrationRunner implements ApplicationRunner {
         try {
             productSpuEsService.saveSpu(refreshed);
         } catch (Exception e) {
-            log.warn("Elasticsearch saveSpu after iPhone SKU migration: {}", e.toString());
+            log.warn("ES 索引 iPhone SKU 迁移后写入失败: {}", e.toString());
         }
-        log.info("iPhone 17 Pro SKU migration applied for spuId={}", spuId);
+        log.info("已执行 iPhone 17 Pro 多 SKU 迁移 spuId={}", spuId);
     }
 
     private void insertIfMissing(long spuId, String code, String specJson, int priceCent, int stock) {

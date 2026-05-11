@@ -7,7 +7,6 @@ const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
 
-/** 先选身份再填账号；演示密码均为 demo123 */
 const step = ref('role')
 const username = ref('buyer')
 const password = ref('demo123')
@@ -27,15 +26,9 @@ function formatLoginErr(e) {
     (typeof e.message === 'string' ? e.message : '') ||
     ''
   if (raw === 'commerce_unavailable_or_open_circuit') {
-    return (
-      '网关暂时无法访问后台（熔断开启或 commerce 未就绪）。常见于压测刚结束或只启动了 commerce 未启动 gateway。' +
-      '请在服务器确认：Redis 6380、commerce 8081、gateway 8080 均在监听；等待约 10～30 秒后刷新重试，或重启 gateway / commerce。'
-    )
+    return '网关熔断或 commerce 未就绪：检查 Redis:6380、commerce:8081、gateway:8080，稍后重试或重启服务。'
   }
-  return (
-    raw ||
-    '登录/注册请求失败（请用 http:// 访问本站，并在开发者工具 Network 里查看 /api/auth/login）'
-  )
+  return raw || '登录失败，请检查网络或在浏览器 Network 中查看 /api/auth/login'
 }
 
 function chooseBuyer() {
@@ -83,7 +76,7 @@ async function submit() {
       <template v-if="step === 'role'">
         <div class="head">
           <h1>选择身份</h1>
-          <p class="subtle">请选择以买家或商家进入登录页；演示环境可使用下方默认账号，登录后也可更换为任意用户名。</p>
+          <p class="subtle">选身份后登录；默认密码均为 demo123，用户名可改。</p>
         </div>
         <div class="role-grid">
           <button type="button" class="role-card" @click="chooseBuyer">
@@ -103,7 +96,7 @@ async function submit() {
         <div class="head">
           <div>
             <h1>{{ mode === 'login' ? '登录' : '注册' }}</h1>
-            <p class="subtle">可修改用户名与密码；演示密码一般为 demo123。</p>
+            <p class="subtle">可改用户名；默认密码 demo123。</p>
           </div>
         </div>
 

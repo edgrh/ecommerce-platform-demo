@@ -13,11 +13,9 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            # Any localhost / 127.0.0.1 dev port (5173, 4173 preview, etc.)
             allowedOriginPatterns:
               - "http://localhost:*"
               - "http://127.0.0.1:*"
-              # Deployed demo site (Nginx on cloud host)
               - "http://117.72.34.13"
               - "http://117.72.34.13:*"
             allowedMethods:
@@ -45,8 +43,7 @@ spring:
                 name: commerceCb
                 fallbackUri: forward:/fallback/503
 
-# 单机/答辩演示：commerce 偶发抖动或压测后容易误触发熔断，导致登录接口直接返回 commerce_unavailable_or_open_circuit。
-# K8s 高并发场景可用更高 replenishRate + 独立 profile 收紧熔断策略。
+# 单机默认：放宽熔断，避免 commerce 短暂抖动后网关长时间返回 503。
 resilience4j:
   timelimiter:
     instances:

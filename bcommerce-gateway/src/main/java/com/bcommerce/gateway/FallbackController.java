@@ -19,6 +19,6 @@ public class FallbackController {
                                         "error",
                                         "commerce_unavailable_or_open_circuit",
                                         "hint",
-                                        "Gateway circuit open or commerce unreachable. Ensure commerce listens on :8081, Redis on :6380, then restart gateway.")));
+                                        "网关熔断或 commerce 不可达：确认 8081（commerce）、6380（Redis）可用后重启 gateway。")));
     }
 }

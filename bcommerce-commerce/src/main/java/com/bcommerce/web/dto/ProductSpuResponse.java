@@ -3,13 +3,13 @@ package com.bcommerce.web.dto;
 import com.bcommerce.model.ProductSpu;
 import java.time.LocalDateTime;
 
+/** 商品列表/搜索；minPriceCent 为在售 SKU 最低价（分），无 SKU 时为 null。 */
 public record ProductSpuResponse(
         long id,
         String title,
         String subtitle,
         String status,
         LocalDateTime createdAt,
-        /** Lowest SKU price in cents; null if no SKU row. */
         Long minPriceCent) {
 
     public static ProductSpuResponse from(ProductSpu p) {

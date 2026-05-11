@@ -61,7 +61,7 @@ public class CCartController {
         cartService.clear(u.id());
     }
 
-    /** Mock payment (same Resilience4j path as秒杀) then create NORMAL order, clear cart. */
+    /** 模拟支付后生成普通订单并清空购物车（与秒杀下单共用 PaymentMockClient）。 */
     @PostMapping("/checkout")
     public OrderDetailResponse checkout(
             @RequestHeader(value = "X-Idempotency-Key", required = false) String idemKey) {
