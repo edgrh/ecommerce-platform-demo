@@ -59,7 +59,7 @@ function loginBuyer() {
   check(res, { 'login 200': (r) => r.status === 200 })
   try {
     return res.json('token')
-  } catch {
+  } catch (e) {
     return null
   }
 }
@@ -143,7 +143,7 @@ export default function (data) {
     const res = http.post(
       `${BASE_URL}/api/c/seckill/orders`,
       JSON.stringify({ activityId: actId, quantity: 1 }),
-      { headers: { ...jsonHeaders(token), 'X-Idempotency-Key': key } }
+      { headers: Object.assign({}, jsonHeaders(token), { 'X-Idempotency-Key': key }) }
     )
     check(res, { 'seckill order responded': (r) => r.status >= 200 && r.status < 500 })
     sleep(Math.random() * 0.02)
