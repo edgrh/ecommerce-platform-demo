@@ -97,7 +97,7 @@ function loginBuyer() {
   check(res, { 'login 200': (r) => r.status === 200 })
   try {
     return res.json('token')
-  } catch {
+  } catch (e) {
     return null
   }
 }
