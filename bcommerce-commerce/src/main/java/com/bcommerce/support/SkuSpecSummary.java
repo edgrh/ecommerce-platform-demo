@@ -17,10 +17,7 @@ public final class SkuSpecSummary {
         try {
             JsonNode n = M.readTree(specJson);
             String storage = text(n, "storage");
-            String colorName = text(n, "colorName");
-            if (colorName.isEmpty()) {
-                colorName = colorToCn(text(n, "color"));
-            }
+            String colorName = displayColor(n);
             String model = text(n, "model");
             StringBuilder sb = new StringBuilder();
             if (!model.isEmpty()) {
@@ -53,17 +50,49 @@ public final class SkuSpecSummary {
         return v == null || v.isNull() ? "" : v.asText("").trim();
     }
 
+    private static String displayColor(JsonNode n) {
+        String colorKey = normColorKey(text(n, "color"));
+        String rawName = text(n, "colorName");
+        if (!rawName.isEmpty() && containsHan(rawName)) {
+            return rawName;
+        }
+        String fromKey = colorToCn(colorKey);
+        if (!fromKey.isEmpty()) {
+            return fromKey;
+        }
+        if (!rawName.isEmpty()) {
+            String fromName = colorToCn(normColorKey(rawName));
+            if (!fromName.isEmpty()) {
+                return fromName;
+            }
+        }
+        return colorToCn(normColorKey(rawName));
+    }
+
+    private static boolean containsHan(String s) {
+        return s.codePoints().anyMatch(cp -> Character.UnicodeScript.of(cp) == Character.UnicodeScript.HAN);
+    }
+
+    /** Normalize tokens like "Deep Blue", "sliver" (typo) for lookup. */
+    private static String normColorKey(String s) {
+        if (s == null || s.isBlank()) {
+            return "";
+        }
+        return s.trim().toLowerCase().replace(' ', '_').replace('-', '_');
+    }
+
     private static String colorToCn(String colorKey) {
         if (colorKey == null || colorKey.isEmpty()) {
             return "";
         }
-        return switch (colorKey) {
-            case "silver" -> "银色";
+        String k = normColorKey(colorKey);
+        return switch (k) {
+            case "silver", "sliver" -> "银色";
             case "gold" -> "金色";
-            case "deep_blue" -> "深蓝色";
-            case "black", "space_black" -> "深空黑色";
+            case "deep_blue", "deepblue" -> "深蓝色";
+            case "black", "space_black", "spaceblack" -> "深空黑色";
             case "midnight" -> "午夜色";
-            default -> colorKey;
+            default -> containsHan(colorKey) ? colorKey : "";
         };
     }
 }

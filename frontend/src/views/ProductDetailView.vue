@@ -26,6 +26,49 @@ function parseSpec(json) {
   }
 }
 
+/** 英文 color / colorName / 常见拼写错误 → 中文（与后端 SkuSpecSummary 一致） */
+function colorKeyToCn(raw) {
+  if (!raw || typeof raw !== 'string') {
+    return ''
+  }
+  const k = raw
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, '_')
+  const map = {
+    silver: '银色',
+    sliver: '银色',
+    gold: '金色',
+    deep_blue: '深蓝色',
+    deepblue: '深蓝色',
+    black: '深空黑色',
+    space_black: '深空黑色',
+    spaceblack: '深空黑色',
+    midnight: '午夜色',
+  }
+  return map[k] || ''
+}
+
+function hasHan(s) {
+  return typeof s === 'string' && /[\u4e00-\u9fff]/.test(s)
+}
+
+/** 颜色芯片文案：优先已有中文 colorName，否则由英文 color / colorName 映射 */
+function colorChipLabel(j) {
+  if (j.colorName && hasHan(j.colorName)) {
+    return j.colorName
+  }
+  const fromColor = colorKeyToCn(j.color)
+  if (fromColor) {
+    return fromColor
+  }
+  const fromName = colorKeyToCn(j.colorName)
+  if (fromName) {
+    return fromName
+  }
+  return j.colorName || j.color || '默认'
+}
+
 const storages = computed(() => {
   const skus = p.value?.skus || []
   const set = new Map()
@@ -55,7 +98,7 @@ const colorsForStorage = computed(() => {
     seen.add(key)
     out.push({
       key: j.color || j.colorName || '',
-      label: j.colorName || j.color || key || '默认',
+      label: colorChipLabel(j),
     })
   }
   return out

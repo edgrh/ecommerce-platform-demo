@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import http from '../api/http'
 
@@ -8,12 +8,70 @@ const err = ref('')
 const loading = ref(true)
 const page = ref(1)
 const PAGE_SIZE = 10
+const searchQ = ref('')
 
-const totalPages = computed(() => Math.max(1, Math.ceil(list.value.length / PAGE_SIZE)))
+const filteredList = computed(() => {
+  const q = searchQ.value.trim().toLowerCase()
+  if (!q) {
+    return list.value
+  }
+  return list.value.filter((o) => orderMatches(o, q))
+})
+
+function orderMatches(o, q) {
+  if ((o.orderNo || '').toLowerCase().includes(q)) {
+    return true
+  }
+  if ((o.status || '').toLowerCase().includes(q)) {
+    return true
+  }
+  if ((o.orderType || '').toLowerCase().includes(q)) {
+    return true
+  }
+  const st = statusBadge(o.status).text.toLowerCase()
+  const tp = typeBadge(o.orderType).text.toLowerCase()
+  if (st.includes(q) || tp.includes(q)) {
+    return true
+  }
+  const timeStr = (o.createdAt || '').toLowerCase().replace('t', ' ')
+  if (timeStr.includes(q)) {
+    return true
+  }
+  const items = o.items || []
+  for (const it of items) {
+    if ((it.titleSnapshot || '').toLowerCase().includes(q)) {
+      return true
+    }
+    const priceStr = ((it.unitPriceCent || 0) / 100).toFixed(2)
+    if (priceStr.includes(q)) {
+      return true
+    }
+  }
+  const totalStr = ((o.totalCent || 0) / 100).toFixed(2)
+  if (totalStr.includes(q)) {
+    return true
+  }
+  return false
+}
+
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredList.value.length / PAGE_SIZE)))
 
 const pagedList = computed(() => {
   const start = (page.value - 1) * PAGE_SIZE
-  return list.value.slice(start, start + PAGE_SIZE)
+  return filteredList.value.slice(start, start + PAGE_SIZE)
+})
+
+watch([() => filteredList.value.length, searchQ], () => {
+  if (page.value > totalPages.value) {
+    page.value = totalPages.value
+  }
+  if (page.value < 1) {
+    page.value = 1
+  }
+})
+
+watch(searchQ, () => {
+  page.value = 1
 })
 
 function statusBadge(status) {
@@ -54,6 +112,11 @@ function goPage(p) {
   page.value = Math.min(Math.max(1, p), totalPages.value)
 }
 
+function clearSearch() {
+  searchQ.value = ''
+  page.value = 1
+}
+
 onMounted(load)
 </script>
 
@@ -62,15 +125,37 @@ onMounted(load)
     <div class="page-head">
       <div>
         <h1>我的订单</h1>
-        <p class="subtle">买家订单与明细；订单状态、类型均带标签。</p>
+        <p class="subtle">支持按订单号、商品名、金额、状态、类型、时间等关键词筛选。</p>
       </div>
       <button class="ghost" type="button" :disabled="loading" @click="load">{{ loading ? '刷新中…' : '刷新' }}</button>
     </div>
+
+    <div v-if="list.length && !loading" class="card search-card">
+      <div class="search-row">
+        <input
+          v-model="searchQ"
+          class="search-input"
+          type="search"
+          placeholder="搜索订单号、商品名称、已付款、秒杀、金额…"
+          enterkeyhint="search"
+          @keyup.enter="page = 1"
+        />
+        <button type="button" class="ghost" @click="clearSearch">清空</button>
+      </div>
+      <p v-if="searchQ.trim()" class="search-meta">
+        当前筛选：<strong>{{ filteredList.length }}</strong> 笔 / 共 {{ list.length }} 笔
+      </p>
+    </div>
+
     <p v-if="err" class="err">{{ err }}</p>
     <div v-if="loading" class="card">加载中…</div>
     <div v-else-if="!list.length && !err" class="card empty">
       <span>你还没有订单。</span>
       <RouterLink class="ghost" to="/" style="text-decoration: none; display: inline-block">去逛商品</RouterLink>
+    </div>
+    <div v-else-if="!filteredList.length" class="card empty">
+      <span>没有符合「{{ searchQ.trim() }}」的订单。</span>
+      <button type="button" class="ghost" @click="clearSearch">清空搜索</button>
     </div>
     <template v-else>
       <div class="grid">
@@ -101,9 +186,9 @@ onMounted(load)
         </div>
       </div>
 
-      <div v-if="list.length > PAGE_SIZE" class="pager">
+      <div v-if="filteredList.length > PAGE_SIZE" class="pager">
         <button type="button" class="ghost" :disabled="page <= 1" @click="goPage(page - 1)">上一页</button>
-        <span class="pi">{{ page }} / {{ totalPages }}（共 {{ list.length }} 笔）</span>
+        <span class="pi">{{ page }} / {{ totalPages }}（本页 {{ pagedList.length }} 条 · 筛选共 {{ filteredList.length }} 笔）</span>
         <button type="button" class="ghost" :disabled="page >= totalPages" @click="goPage(page + 1)">下一页</button>
       </div>
     </template>
@@ -111,6 +196,29 @@ onMounted(load)
 </template>
 
 <style scoped>
+.search-card {
+  margin-bottom: 12px;
+  padding: 14px 16px;
+}
+.search-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  font-size: 15px;
+}
+.search-meta {
+  margin: 10px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
 .mono {
   font-family: ui-monospace, monospace;
   font-size: 12px;
