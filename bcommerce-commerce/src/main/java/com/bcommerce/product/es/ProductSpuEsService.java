@@ -1,9 +1,13 @@
 package com.bcommerce.product.es;
 
+import com.bcommerce.mapper.ProductSkuMapper;
 import com.bcommerce.mapper.ProductSpuMapper;
 import com.bcommerce.model.ProductSpu;
 import com.bcommerce.web.dto.ProductSpuResponse;
+import com.bcommerce.web.dto.SpuMinPriceRow;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +26,7 @@ public class ProductSpuEsService {
 
     private final ProductSpuEsRepository esRepository;
     private final ProductSpuMapper spuMapper;
+    private final ProductSkuMapper skuMapper;
     private final ElasticsearchOperations elasticsearchOperations;
 
     public void reindexAllFromDb() {
@@ -57,9 +62,20 @@ public class ProductSpuEsService {
         CriteriaQuery query = new CriteriaQuery(full);
         query.setPageable(PageRequest.of(0, size));
         SearchHits<ProductSpuDocument> hits = elasticsearchOperations.search(query, ProductSpuDocument.class);
-        return hits.getSearchHits().stream()
-                .map(SearchHit::getContent)
-                .map(ProductSpuResponse::from)
-                .toList();
+        List<ProductSpuResponse> rows =
+                hits.getSearchHits().stream().map(SearchHit::getContent).map(ProductSpuResponse::from).toList();
+        if (rows.isEmpty()) {
+            return rows;
+        }
+        List<Long> ids = rows.stream().map(ProductSpuResponse::id).toList();
+        List<SpuMinPriceRow> mins = skuMapper.selectMinPriceBySpuIds(ids);
+        Map<Long, Long> priceBySpu =
+                mins.stream()
+                        .collect(
+                                Collectors.toMap(
+                                        SpuMinPriceRow::spuId,
+                                        r -> r.priceCent().longValue(),
+                                        (a, b) -> a));
+        return rows.stream().map(r -> r.withMinPriceCent(priceBySpu.get(r.id()))).toList();
     }
 }

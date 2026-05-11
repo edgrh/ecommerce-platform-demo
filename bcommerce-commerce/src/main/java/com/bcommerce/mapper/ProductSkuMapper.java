@@ -1,6 +1,7 @@
 package com.bcommerce.mapper;
 
 import com.bcommerce.model.ProductSku;
+import com.bcommerce.web.dto.SpuMinPriceRow;
 import java.util.List;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -27,4 +28,6 @@ public interface ProductSkuMapper {
     @Update(
             "UPDATE bc_product_sku SET sold = sold + #{qty}, stock = stock - #{qty} WHERE id = #{id} AND stock >= #{qty}")
     int increaseSoldDecreaseStock(@Param("id") Long id, @Param("qty") int qty);
+
+    List<SpuMinPriceRow> selectMinPriceBySpuIds(@Param("ids") List<Long> ids);
 }

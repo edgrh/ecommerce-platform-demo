@@ -2,7 +2,8 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.bcommerce.mapper.ProductSpuMapper">
     <select id="searchByKeyword" resultType="com.bcommerce.model.ProductSpu">
-        SELECT id, category_id AS categoryId, title, subtitle, detail, merchant_id AS merchantId, status, created_at AS createdAt
+        SELECT id, category_id AS categoryId, title, subtitle, detail, merchant_id AS merchantId, status, created_at AS createdAt,
+               (SELECT MIN(k.price_cent) FROM bc_product_sku k WHERE k.spu_id = bc_product_spu.id) AS minPriceCent
         FROM bc_product_spu
         WHERE status = 'ON_SHELF'
           AND title LIKE CONCAT('%', #{q}, '%')

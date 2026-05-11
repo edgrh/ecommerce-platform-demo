@@ -13,4 +13,6 @@ public class ProductSpu {
     private Long merchantId;
     private String status;
     private LocalDateTime createdAt;
+    /** Lowest SKU price (yen×100); filled by list/search SQL, not a table column on spu. */
+    private Integer minPriceCent;
 }

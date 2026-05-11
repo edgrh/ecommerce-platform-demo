@@ -12,17 +12,20 @@ import org.apache.ibatis.annotations.Select;
 public interface ProductSpuMapper {
 
     @Select(
-            "SELECT id, category_id AS categoryId, title, subtitle, detail, merchant_id AS merchantId, status, created_at AS createdAt "
+            "SELECT id, category_id AS categoryId, title, subtitle, detail, merchant_id AS merchantId, status, created_at AS createdAt, "
+                    + "(SELECT MIN(k.price_cent) FROM bc_product_sku k WHERE k.spu_id = bc_product_spu.id) AS minPriceCent "
                     + "FROM bc_product_spu WHERE status = 'ON_SHELF' ORDER BY id DESC LIMIT #{limit}")
     List<ProductSpu> listOnShelf(@Param("limit") int limit);
 
     @Select(
-            "SELECT id, category_id AS categoryId, title, subtitle, detail, merchant_id AS merchantId, status, created_at AS createdAt "
+            "SELECT id, category_id AS categoryId, title, subtitle, detail, merchant_id AS merchantId, status, created_at AS createdAt, "
+                    + "(SELECT MIN(k.price_cent) FROM bc_product_sku k WHERE k.spu_id = bc_product_spu.id) AS minPriceCent "
                     + "FROM bc_product_spu WHERE status = 'ON_SHELF' ORDER BY id DESC")
     List<ProductSpu> listAllOnShelf();
 
     @Select(
-            "SELECT id, category_id AS categoryId, title, subtitle, detail, merchant_id AS merchantId, status, created_at AS createdAt "
+            "SELECT id, category_id AS categoryId, title, subtitle, detail, merchant_id AS merchantId, status, created_at AS createdAt, "
+                    + "(SELECT MIN(k.price_cent) FROM bc_product_sku k WHERE k.spu_id = bc_product_spu.id) AS minPriceCent "
                     + "FROM bc_product_spu WHERE id = #{id}")
     ProductSpu findById(Long id);
 

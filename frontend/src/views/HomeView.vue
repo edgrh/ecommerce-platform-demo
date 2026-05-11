@@ -92,6 +92,8 @@ onMounted(load)
           <RouterLink :to="'/products/' + p.id">{{ p.title }}</RouterLink>
         </div>
         <div class="p-sub">{{ p.subtitle }}</div>
+        <div v-if="p.minPriceCent != null" class="p-price">¥{{ (p.minPriceCent / 100).toFixed(2) }}<span class="from"> 起</span></div>
+        <div v-else class="p-price muted">价格见详情</div>
         <div class="p-actions">
           <RouterLink class="btn" :to="'/products/' + p.id">查看详情</RouterLink>
         </div>
@@ -219,6 +221,22 @@ onMounted(load)
   font-size: 14px;
   line-height: 1.45;
   min-height: 40px;
+}
+.p-price {
+  margin-top: 10px;
+  font-size: 20px;
+  font-weight: 800;
+  color: #e11d48;
+}
+.p-price.muted {
+  font-size: 14px;
+  font-weight: 600;
+  color: #94a3b8;
+}
+.p-price .from {
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
 }
 .p-actions {
   margin-top: 12px;

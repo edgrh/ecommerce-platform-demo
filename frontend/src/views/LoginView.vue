@@ -1,15 +1,25 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
 const route = useRoute()
+
+/** 先选身份再填账号；演示密码均为 demo123 */
+const step = ref('role')
 const username = ref('buyer')
 const password = ref('demo123')
 const err = ref('')
 const mode = ref('login')
+
+watch(
+  () => route.fullPath,
+  () => {
+    err.value = ''
+  },
+)
 
 function formatLoginErr(e) {
   const raw =
@@ -28,6 +38,25 @@ function formatLoginErr(e) {
   )
 }
 
+function chooseBuyer() {
+  step.value = 'account'
+  username.value = 'buyer'
+  password.value = 'demo123'
+  err.value = ''
+}
+
+function chooseMerchant() {
+  step.value = 'account'
+  username.value = 'merchant'
+  password.value = 'demo123'
+  err.value = ''
+}
+
+function backToRole() {
+  step.value = 'role'
+  err.value = ''
+}
+
 async function submit() {
   err.value = ''
   try {
@@ -42,7 +71,6 @@ async function submit() {
   try {
     await router.replace(redirectPath)
   } catch (e) {
-    // 登录已成功；跳转异常不应掩盖成功（例如重复导航）
     console.warn('login redirect:', e)
     window.location.href = redirectPath
   }
@@ -52,35 +80,60 @@ async function submit() {
 <template>
   <div class="wrap">
     <div class="card panel">
-      <div class="head">
-        <div>
-          <h1>{{ mode === 'login' ? '登录' : '注册' }}</h1>
-          <p class="subtle">演示账号：商家 merchant / demo123；买家 buyer / demo123</p>
+      <template v-if="step === 'role'">
+        <div class="head">
+          <h1>选择身份</h1>
+          <p class="subtle">请选择以买家或商家进入登录页；演示环境可使用下方默认账号，登录后也可更换为任意用户名。</p>
         </div>
-      </div>
+        <div class="role-grid">
+          <button type="button" class="role-card" @click="chooseBuyer">
+            <span class="role-title">我是买家</span>
+            <span class="role-hint">浏览商品、购物车、下单与查看订单</span>
+            <span class="role-cred">默认：<strong>buyer</strong> / <strong>demo123</strong></span>
+          </button>
+          <button type="button" class="role-card merchant" @click="chooseMerchant">
+            <span class="role-title">我是商家</span>
+            <span class="role-hint">快速上架、查看关联订单</span>
+            <span class="role-cred">默认：<strong>merchant</strong> / <strong>demo123</strong></span>
+          </button>
+        </div>
+      </template>
 
-      <div class="quick">
-        <button type="button" class="ghost" @click="(username = 'buyer'), (password = 'demo123')">填入买家</button>
-        <button type="button" class="ghost" @click="(username = 'merchant'), (password = 'demo123')">填入商家</button>
-      </div>
+      <template v-else>
+        <div class="head">
+          <div>
+            <h1>{{ mode === 'login' ? '登录' : '注册' }}</h1>
+            <p class="subtle">可修改用户名与密码；演示密码一般为 demo123。</p>
+          </div>
+        </div>
 
-      <div class="field">
-        <label>用户名</label>
-        <input v-model="username" placeholder="buyer / merchant" autocomplete="username" />
-      </div>
-      <div class="field">
-        <label>密码</label>
-        <input v-model="password" type="password" placeholder="demo123" autocomplete="current-password" />
-      </div>
+        <button type="button" class="back ghost" @click="backToRole">← 重新选择身份</button>
 
-      <p v-if="err" class="err">{{ err }}</p>
+        <div class="quick">
+          <button type="button" class="ghost" @click="((username = 'buyer'), (password = 'demo123'))">填入买家账号</button>
+          <button type="button" class="ghost" @click="((username = 'merchant'), (password = 'demo123'))">
+            填入商家账号
+          </button>
+        </div>
 
-      <div class="actions">
-        <button class="primary" type="button" @click="submit">{{ mode === 'login' ? '登录' : '注册' }}</button>
-        <button type="button" class="ghost" @click="mode = mode === 'login' ? 'register' : 'login'">
-          {{ mode === 'login' ? '去注册' : '去登录' }}
-        </button>
-      </div>
+        <div class="field">
+          <label>用户名</label>
+          <input v-model="username" placeholder="buyer / merchant" autocomplete="username" />
+        </div>
+        <div class="field">
+          <label>密码</label>
+          <input v-model="password" type="password" placeholder="demo123" autocomplete="current-password" />
+        </div>
+
+        <p v-if="err" class="err">{{ err }}</p>
+
+        <div class="actions">
+          <button class="primary" type="button" @click="submit">{{ mode === 'login' ? '登录' : '注册' }}</button>
+          <button type="button" class="ghost" @click="mode = mode === 'login' ? 'register' : 'login'">
+            {{ mode === 'login' ? '去注册' : '去登录' }}
+          </button>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -93,12 +146,56 @@ async function submit() {
   padding: 10px 0 26px;
 }
 .panel {
-  width: min(520px, 100%);
+  width: min(560px, 100%);
   padding: 18px;
 }
 .head h1 {
   margin: 0;
   font-size: 26px;
+}
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+.role-card {
+  text-align: left;
+  padding: 16px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.role-card:hover {
+  border-color: rgba(225, 29, 72, 0.35);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+}
+.role-card.merchant:hover {
+  border-color: rgba(37, 99, 235, 0.35);
+}
+.role-title {
+  font-weight: 800;
+  font-size: 17px;
+  color: #0f172a;
+}
+.role-hint {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.45;
+}
+.role-cred {
+  font-size: 12px;
+  color: #475569;
+  margin-top: 4px;
+}
+.back {
+  margin: 12px 0 6px;
+  width: fit-content;
 }
 .quick {
   display: flex;
@@ -112,5 +209,10 @@ async function submit() {
   align-items: center;
   flex-wrap: wrap;
   margin-top: 10px;
+}
+@media (max-width: 560px) {
+  .role-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

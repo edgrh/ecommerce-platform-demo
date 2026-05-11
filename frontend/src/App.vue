@@ -1,10 +1,16 @@
 <script setup>
-import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 
 const auth = useAuthStore()
 auth.restore()
 const route = useRoute()
+const router = useRouter()
+
+function switchAccount() {
+  auth.logout()
+  router.push('/login')
+}
 </script>
 
 <template>
@@ -18,7 +24,8 @@ const route = useRoute()
         <RouterLink to="/orders">我的订单</RouterLink>
         <RouterLink v-if="auth.role === 'MERCHANT'" to="/merchant">商家后台</RouterLink>
         <template v-if="auth.token">
-          <span class="meta">{{ auth.role }}</span>
+          <span class="meta">{{ auth.role === 'CUSTOMER' ? '买家' : auth.role === 'MERCHANT' ? '商家' : auth.role }}</span>
+          <button type="button" class="link" @click="switchAccount">切换账号</button>
           <button type="button" class="link" @click="auth.logout">退出</button>
         </template>
         <RouterLink v-else to="/login">登录</RouterLink>
@@ -32,16 +39,13 @@ const route = useRoute()
 
 <style>
 :root {
-  --bg-band: #121826;
-  --bg-band-mid: #1a2332;
-  --blank: #fafbfc;
-  --panel: rgba(255, 255, 255, 0.96);
+  --page-bg: #eef1f5;
   --panel-solid: #ffffff;
   --text: #0f172a;
   --muted: #64748b;
-  --border: rgba(148, 163, 184, 0.35);
-  --shadow: 0 18px 45px rgba(2, 6, 23, 0.18);
-  --shadow-sm: 0 10px 25px rgba(2, 6, 23, 0.12);
+  --border: rgba(15, 23, 42, 0.1);
+  --shadow: 0 18px 45px rgba(2, 6, 23, 0.08);
+  --shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.06);
   --brand: #e11d48;
   --brand-2: #fb7185;
   --blue: #2563eb;
@@ -61,22 +65,9 @@ body {
     Arial,
     "Apple Color Emoji",
     "Segoe UI Emoji";
-  /* 下半屏留白；有色区域由 ::before 固定铺满视口上半，滚动时长页仍为简洁白底 */
-  background: var(--blank);
+  background: var(--page-bg);
   color: var(--text);
   min-height: 100vh;
-}
-
-body::before {
-  content: '';
-  position: fixed;
-  left: 0;
-  right: 0;
-  top: 0;
-  height: 50vh;
-  z-index: -1;
-  background: linear-gradient(165deg, var(--bg-band) 0%, var(--bg-band-mid) 72%, #243045 100%);
-  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
 }
 * {
   box-sizing: border-box;
@@ -100,17 +91,17 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 16px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid var(--border);
+  background: transparent;
 }
 .logo {
   font-weight: 800;
-  color: #fff;
+  color: var(--brand);
   text-decoration: none;
   letter-spacing: 0.2px;
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
 }
 .logo:hover {
-  color: #fecdd3;
+  color: #be123c;
 }
 nav {
   display: flex;
@@ -119,40 +110,41 @@ nav {
   flex-wrap: wrap;
 }
 nav a {
-  color: rgba(255, 255, 255, 0.92);
+  color: #334155;
   text-decoration: none;
   padding: 7px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #fff;
 }
 nav a.router-link-active {
-  color: #fff;
-  border-color: rgba(251, 113, 133, 0.55);
-  background: rgba(225, 29, 72, 0.35);
+  color: #be123c;
+  border-color: rgba(225, 29, 72, 0.35);
+  background: rgba(254, 226, 232, 0.5);
 }
 .meta {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--muted);
 }
 .link {
   background: none;
   border: none;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--blue);
   cursor: pointer;
   text-decoration: underline;
   text-underline-offset: 3px;
+  font-size: 13px;
 }
 .link:hover {
-  color: #fff;
+  color: #1d4ed8;
 }
 .card {
   background: var(--panel-solid);
-  border: 1px solid rgba(15, 23, 42, 0.08);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 12px;
-  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-sm);
 }
 .err {
   color: #b91c1c;
@@ -174,13 +166,12 @@ input {
   padding: 8px 10px;
   border-radius: 12px;
   border: 1px solid rgba(203, 213, 225, 0.9);
-  background: rgba(255, 255, 255, 0.96);
+  background: #fff;
 }
 main {
   padding-top: 16px;
 }
 
-/* Reusable UI helpers (keep simple, no framework) */
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -233,7 +224,7 @@ main {
 }
 .ghost {
   border: 1px solid rgba(148, 163, 184, 0.35);
-  background: rgba(255, 255, 255, 0.7);
+  background: #fff;
   color: #334155;
   border-radius: 12px;
   padding: 8px 12px;

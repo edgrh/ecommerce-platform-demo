@@ -16,7 +16,7 @@ const showConfirmModal = ref(false)
 const confirmCooldown = ref(0)
 let cooldownTick = null
 
-const PAGE_SIZE = 5
+const PAGE_SIZE = 10
 const orderPage = ref(1)
 
 const totalOrderPages = computed(() =>
@@ -171,6 +171,21 @@ function typeLabel(t) {
   return map[t] || t
 }
 
+function statusAbbr(s) {
+  const map = { PAID: '付', CREATED: '待', SHIPPED: '发', COMPLETED: '完', CANCELLED: '消' }
+  return map[s] || (s ? String(s).slice(0, 1) : '?')
+}
+
+function typeAbbr(t) {
+  if (t === 'SECKILL') {
+    return '秒'
+  }
+  if (t === 'NORMAL') {
+    return '普'
+  }
+  return t ? String(t).slice(0, 1) : '?'
+}
+
 function formatMoney(cent) {
   return (Number(cent) / 100).toFixed(2)
 }
@@ -257,7 +272,7 @@ loadOrders()
           <span class="sub">买家下单包含您店铺商品后，会出现在这里。</span>
         </div>
 
-        <div v-else class="table-wrap">
+        <div v-else class="table-wrap table-scroll">
           <table class="order-table">
             <thead>
               <tr>
@@ -273,8 +288,12 @@ loadOrders()
                 <td class="mono">{{ o.orderNo }}</td>
                 <td class="money">¥{{ formatMoney(o.totalCent) }}</td>
                 <td>
-                  <span class="pill-status">{{ statusLabel(o.status) }}</span>
-                  <span class="pill-type">{{ typeLabel(o.orderType) }}</span>
+                  <span class="pill-status"
+                    ><span class="pill-abbr">{{ statusAbbr(o.status) }}</span>{{ statusLabel(o.status) }}</span
+                  >
+                  <span class="pill-type"
+                    ><span class="pill-abbr">{{ typeAbbr(o.orderType) }}</span>{{ typeLabel(o.orderType) }}</span
+                  >
                 </td>
                 <td class="time">{{ o.createdAt?.replace('T', ' ')?.slice(0, 19) }}</td>
                 <td class="goods">{{ orderSummary(o) }}</td>
@@ -287,7 +306,7 @@ loadOrders()
           <button type="button" class="btn-page" :disabled="orderPage <= 1" @click="goOrderPage(orderPage - 1)">
             上一页
           </button>
-          <span class="page-info">{{ orderPage }} / {{ totalOrderPages }}</span>
+          <span class="page-info">{{ orderPage }} / {{ totalOrderPages }}（每页 {{ PAGE_SIZE }} 条 · 共 {{ orders.length }} 笔）</span>
           <button
             type="button"
             class="btn-page"
@@ -559,6 +578,35 @@ loadOrders()
 
 .table-wrap {
   overflow-x: auto;
+}
+
+/* 单页 10 条内可纵向滑动，避免列表过长占满屏 */
+.table-scroll {
+  max-height: min(520px, 62vh);
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  border-radius: 6px;
+}
+
+.table-scroll .order-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-shadow: 0 1px 0 #e8e8e8;
+}
+
+.pill-abbr {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  margin-right: 6px;
+  padding: 0 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.85);
 }
 
 .order-table {
