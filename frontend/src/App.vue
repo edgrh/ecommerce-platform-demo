@@ -32,9 +32,10 @@ const route = useRoute()
 
 <style>
 :root {
-  --bg0: #0b1220;
-  --bg1: #0f172a;
-  --panel: rgba(255, 255, 255, 0.92);
+  --bg-band: #121826;
+  --bg-band-mid: #1a2332;
+  --blank: #fafbfc;
+  --panel: rgba(255, 255, 255, 0.96);
   --panel-solid: #ffffff;
   --text: #0f172a;
   --muted: #64748b;
@@ -60,11 +61,22 @@ body {
     Arial,
     "Apple Color Emoji",
     "Segoe UI Emoji";
-  background:
-    radial-gradient(1200px 600px at 20% -10%, rgba(251, 113, 133, 0.28), transparent 60%),
-    radial-gradient(900px 500px at 90% 10%, rgba(37, 99, 235, 0.22), transparent 55%),
-    linear-gradient(180deg, var(--bg0), var(--bg1) 55%, #f8fafc 56%, #f8fafc 100%);
+  /* 下半屏留白；有色区域由 ::before 固定铺满视口上半，滚动时长页仍为简洁白底 */
+  background: var(--blank);
   color: var(--text);
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 50vh;
+  z-index: -1;
+  background: linear-gradient(165deg, var(--bg-band) 0%, var(--bg-band-mid) 72%, #243045 100%);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.06);
 }
 * {
   box-sizing: border-box;
@@ -88,14 +100,17 @@ header {
   justify-content: space-between;
   align-items: center;
   padding: 16px 0;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.35);
-  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 .logo {
   font-weight: 800;
-  color: var(--brand);
+  color: #fff;
   text-decoration: none;
   letter-spacing: 0.2px;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+}
+.logo:hover {
+  color: #fecdd3;
 }
 nav {
   display: flex;
@@ -104,35 +119,40 @@ nav {
   flex-wrap: wrap;
 }
 nav a {
-  color: rgba(255, 255, 255, 0.88);
+  color: rgba(255, 255, 255, 0.92);
   text-decoration: none;
   padding: 7px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(148, 163, 184, 0.25);
-  background: rgba(15, 23, 42, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
 }
 nav a.router-link-active {
   color: #fff;
-  border-color: rgba(251, 113, 133, 0.45);
-  background: rgba(225, 29, 72, 0.18);
+  border-color: rgba(251, 113, 133, 0.55);
+  background: rgba(225, 29, 72, 0.35);
 }
 .meta {
   font-size: 12px;
-  color: rgba(226, 232, 240, 0.78);
+  color: rgba(255, 255, 255, 0.72);
 }
 .link {
   background: none;
   border: none;
-  color: rgba(226, 232, 240, 0.78);
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.link:hover {
+  color: #fff;
 }
 .card {
-  background: var(--panel);
-  border: 1px solid var(--border);
+  background: var(--panel-solid);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: var(--radius);
   padding: 16px;
   margin-bottom: 12px;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.06);
 }
 .err {
   color: #b91c1c;
