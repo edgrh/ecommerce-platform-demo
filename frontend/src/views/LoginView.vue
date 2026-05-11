@@ -11,16 +11,30 @@ const password = ref('demo123')
 const err = ref('')
 const mode = ref('login')
 
+function formatLoginErr(e) {
+  const raw =
+    e.response?.data?.error ||
+    (typeof e.message === 'string' ? e.message : '') ||
+    ''
+  if (raw === 'commerce_unavailable_or_open_circuit') {
+    return (
+      '网关暂时无法访问后台（熔断开启或 commerce 未就绪）。常见于压测刚结束或只启动了 commerce 未启动 gateway。' +
+      '请在服务器确认：Redis 6380、commerce 8081、gateway 8080 均在监听；等待约 10～30 秒后刷新重试，或重启 gateway / commerce。'
+    )
+  }
+  return (
+    raw ||
+    '登录/注册请求失败（请用 http:// 访问本站，并在开发者工具 Network 里查看 /api/auth/login）'
+  )
+}
+
 async function submit() {
   err.value = ''
   try {
     if (mode.value === 'login') await auth.login(username.value, password.value)
     else await auth.register(username.value, password.value)
   } catch (e) {
-    err.value =
-      e.response?.data?.error ||
-      (typeof e.message === 'string' ? e.message : '') ||
-      '登录/注册请求失败（请用 http:// 访问本站，并在开发者工具 Network 里查看 /api/auth/login）'
+    err.value = formatLoginErr(e)
     return
   }
   const redirectRaw = route.query.redirect

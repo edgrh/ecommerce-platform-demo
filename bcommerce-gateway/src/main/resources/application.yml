@@ -45,17 +45,21 @@ spring:
                 name: commerceCb
                 fallbackUri: forward:/fallback/503
 
+# 单机/答辩演示：commerce 偶发抖动或压测后容易误触发熔断，导致登录接口直接返回 commerce_unavailable_or_open_circuit。
+# K8s 高并发场景可用更高 replenishRate + 独立 profile 收紧熔断策略。
 resilience4j:
   timelimiter:
     instances:
       commerceCb:
-        timeout-duration: 8s
+        timeout-duration: 45s
   circuitbreaker:
     instances:
       commerceCb:
-        sliding-window-size: 30
-        failure-rate-threshold: 45
-        wait-duration-in-open-state: 10s
+        sliding-window-size: 120
+        minimum-number-of-calls: 40
+        failure-rate-threshold: 80
+        wait-duration-in-open-state: 5s
+        permitted-number-of-calls-in-half-open-state: 20
 
 management:
   endpoints:

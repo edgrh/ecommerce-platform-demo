@@ -14,6 +14,11 @@ public class FallbackController {
     public Mono<ResponseEntity<Map<String, String>>> commerceDown() {
         return Mono.just(
                 ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
-                        .body(Map.of("error", "commerce_unavailable_or_open_circuit")));
+                        .body(
+                                Map.of(
+                                        "error",
+                                        "commerce_unavailable_or_open_circuit",
+                                        "hint",
+                                        "Gateway circuit open or commerce unreachable. Ensure commerce listens on :8081, Redis on :6380, then restart gateway.")));
     }
 }
