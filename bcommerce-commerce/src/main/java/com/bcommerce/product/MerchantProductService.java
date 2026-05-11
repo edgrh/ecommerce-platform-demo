@@ -9,6 +9,7 @@ import com.bcommerce.web.dto.CreateSkuRequest;
 import com.bcommerce.web.dto.CreateSpuRequest;
 import com.bcommerce.web.dto.ProductSpuResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class MerchantProductService {
 
     private final ProductSpuMapper spuMapper;
@@ -35,7 +37,14 @@ public class MerchantProductService {
         spuMapper.insert(spu);
         productListCache.evictShelf();
         ProductSpu saved = spuMapper.findById(spu.getId());
-        productSpuEsService.saveSpu(saved);
+        try {
+            productSpuEsService.saveSpu(saved);
+        } catch (Exception e) {
+            log.warn(
+                    "elasticsearch saveSpu failed after createSpu id={}, keyword search may lag until reindex: {}",
+                    saved.getId(),
+                    e.toString());
+        }
         return ProductSpuResponse.from(saved);
     }
 

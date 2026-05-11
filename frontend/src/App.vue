@@ -1,13 +1,14 @@
 <script setup>
-import { RouterLink, RouterView } from 'vue-router'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 
 const auth = useAuthStore()
 auth.restore()
+const route = useRoute()
 </script>
 
 <template>
-  <div class="layout">
+  <div class="layout" :class="{ 'layout--merchant': route.path === '/merchant' }">
     <header>
       <RouterLink class="logo" to="/">BCommerce 演示</RouterLink>
       <nav>
@@ -78,6 +79,9 @@ a {
   max-width: 960px;
   margin: 0 auto;
   padding: 0 16px 32px;
+}
+.layout.layout--merchant {
+  max-width: 1180px;
 }
 header {
   display: flex;
