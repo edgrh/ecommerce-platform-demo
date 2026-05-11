@@ -98,7 +98,8 @@ curl.exe http://127.0.0.1:8080/api/c/seckill/activities
 
 ## 四、Kubernetes 部署（可选：更像线上）
 
-K8s 方式适合演示“容器化+编排”的流程。文档详见：`docs/K8S.md`。
+K8s 方式适合演示“容器化+编排”的流程。文档详见：`docs/K8S.md`。  
+云上托管集群、多副本与可选 **HPA** 说明见：`docs/K8S-CLUSTER.md`。
 
 典型流程（Docker Desktop Kubernetes）：
 

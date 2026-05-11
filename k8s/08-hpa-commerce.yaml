@@ -1,0 +1,22 @@
+# 可选：commerce 水平扩缩（需集群已安装 metrics-server）
+# kubectl apply -f k8s/08-hpa-commerce.yaml
+# 验证：kubectl -n bcommerce get hpa
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: bcommerce-commerce
+  namespace: bcommerce
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: bcommerce-commerce
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

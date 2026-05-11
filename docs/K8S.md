@@ -2,6 +2,8 @@
 
 将 **MySQL / Redis / RabbitMQ / Elasticsearch（含 IK）/ commerce / gateway** 部署到命名空间 `bcommerce`。应用通过 **`SPRING_PROFILES_ACTIVE=k8s`** 使用集群内 DNS（`mysql:3306`、`redis:6379` 等），见各模块 `application-k8s.yml`。
 
+**托管云集群、多副本含义、可选 HPA**：见 [`K8S-CLUSTER.md`](K8S-CLUSTER.md)。
+
 ## 前置条件
 
 - 已安装 [kubectl](https://kubernetes.io/docs/tasks/tools/)
@@ -60,7 +62,8 @@ Docker Desktop K8s 通常**不需要** `kind load`，保证镜像已 `docker bui
 kubectl apply -f k8s/
 ```
 
-说明：`k8s/` 目录只包含业务运行所需资源（MySQL/Redis/RabbitMQ/ES/commerce/gateway），不再默认创建压测 Job。
+说明：`k8s/` 目录只包含业务运行所需资源（MySQL/Redis/RabbitMQ/ES/commerce/gateway），不再默认创建压测 Job。  
+若集群**未安装 metrics-server**，可暂时移走或跳过 `k8s/08-hpa-commerce.yaml`（否则 HPA 无指标、仅作占位）；详见 [`K8S-CLUSTER.md`](K8S-CLUSTER.md)。
 
 等待就绪：
 
