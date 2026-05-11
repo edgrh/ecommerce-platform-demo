@@ -25,6 +25,7 @@
 | `SETUP-OTHER-MACHINE.md` | 新电脑/新环境：版本、端口、启动顺序、跨平台说明。 |
 | `K8S.md` | 本地 Kubernetes（kind 等）部署与故障排查。 |
 | `K8S-CLUSTER.md` | 集群化：托管 K8s、多副本、可选 HPA；与单机 Compose 对照。 |
+| `大作业-课程报告.md` | 课程大作业正文模板（项目概况、技术方案、流程、答辩要点简答）。 |
 | `CLOUD-DEPLOY.md` | 云上单机（轻量 / ECS）：Docker Compose + 后端 + Nginx 同域代理。 |
 | `ES-NOTE.md` | Elasticsearch 商品检索与 IK 分词说明。 |
 | `PROJECT-FILES.md` | 本文件：全项目文件用途索引。 |
